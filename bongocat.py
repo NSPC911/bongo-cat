@@ -61,12 +61,20 @@ def trigger_animation():
     time.sleep(config["delay"])
     show_paw(idle_photo)
 
+key_pressed = False
 def thread_trigger_animation():
-    threading.Thread(target=trigger_animation).start()
+    global key_pressed
+    if not key_pressed:
+        key_pressed = True
+        threading.Thread(target=trigger_animation).start()
+
+def key_release():
+    global key_pressed
+    key_pressed = False
 
 # screw the extra variables, just lambda it
 if config["use_keyboard"]:
-    keyboard.Listener(on_press=lambda key: thread_trigger_animation()).start()
+    keyboard.Listener(on_press=lambda key: thread_trigger_animation(), on_release=lambda key: key_release()).start()
 if config["use_click"]:
     mouse.Listener(on_click=lambda x, y, button, pressed: thread_trigger_animation() if pressed else None).start()
 

@@ -82,17 +82,16 @@ def trigger_animation():
 
 animation_lock = threading.Lock()
 
-
+key_pressed = False
 def thread_trigger_animation():
-    if animation_lock.locked():
-        return
-
     def run():
         with animation_lock:
             trigger_animation()
             time.sleep(config["delay"])
-
-    threading.Thread(target=run, daemon=True).start()
+    global key_pressed
+    if not key_pressed:
+        key_pressed = True
+        threading.Thread(target=run, daemon=True).start()
 
 
 def key_release():
@@ -110,7 +109,7 @@ if config["use_click"]:
     mouse.Listener(
         on_click=lambda x, y, button, pressed: thread_trigger_animation()
         if pressed
-        else None
+        else key_release()
     ).start()
 
 root.mainloop()

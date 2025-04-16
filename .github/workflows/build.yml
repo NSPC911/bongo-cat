@@ -10,35 +10,35 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Python 3.12
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
-        
+
     - name: Create and activate virtual environment
       run: |
         python -m venv venv
         .\venv\Scripts\Activate.ps1
         python -m pip install --upgrade pip
       shell: pwsh
-      
+
     - name: Install dependencies
       run: |
         .\venv\Scripts\Activate.ps1
         pip install -r requirements.txt
         pip install pyinstaller
       shell: pwsh
-      
+
     - name: Build with PyInstaller
       run: |
         .\venv\Scripts\Activate.ps1
-        pyinstaller --noconsole --onefile --add-data "idle.png;." --add-data "leftpaw.png;." --add-data "rightpaw.png;." bongocat.py
+        pyinstaller --noconsole --onefile --add-data "idle.png;." --add-data "leftpaw.png;." --add-data "rightpaw.png;." --icon=idle.ico bongocat.py
       shell: pwsh
-      
+
     - name: Upload Executable
       uses: actions/upload-artifact@v4
       with:

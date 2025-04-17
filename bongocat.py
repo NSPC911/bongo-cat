@@ -43,7 +43,10 @@ def quit_app(icon, item):
 
 
 def launch_config(icon, item):
-    os.startfile(config["config_path"])
+    os.startfile(os.path.join(
+        os.getenv("APPDATA") if os.name == "nt" else os.path.expanduser("~/.config"),
+        "bongo-cat",
+    ))
 
 
 def reload_config(icon, item):

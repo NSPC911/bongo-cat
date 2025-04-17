@@ -6,7 +6,7 @@ from random import randint
 from pynput import keyboard, mouse
 import threading
 import pystray
-from funcy import load_image, get_config
+from funcy import load_image, get_config, is_fullscreen_app_active
 import time
 import os
 
@@ -15,8 +15,8 @@ config = get_config()
 taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
 left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
-x = right - config["width"] + config["offset_from_right"]
-y = top - config["height"] + config["offset_from_bottom"]
+x = right - config["width"] - config["offset_from_right"]
+y = top - config["height"] + 60 - config["offset_from_bottom"]
 
 root = tk.Tk()
 root.attributes("-topmost", True)
@@ -47,8 +47,28 @@ def launch_config(icon, item):
 
 
 def reload_config(icon, item):
-    global config
+    global config, x, y
     config = get_config()
+
+    # Recalculate window position
+    x = right - config["width"] - config["offset_from_right"]
+    y = top - config["height"] + 60 - config["offset_from_bottom"]
+
+    # Update window size and position
+    root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
+
+    # Reload images with new dimensions
+    global idle_image, leftpaw_image, rightpaw_image, idle_photo, leftpaw_photo, rightpaw_photo
+    idle_image = load_image("idle.png")
+    leftpaw_image = load_image("leftpaw.png")
+    rightpaw_image = load_image("rightpaw.png")
+    idle_photo = ImageTk.PhotoImage(idle_image)
+    leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
+    rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
+
+    # Update the label image
+    label.config(image=idle_photo)
+    label.image = idle_photo
 
 
 def setup_tray_icon():
@@ -111,5 +131,25 @@ if config["use_click"]:
         if pressed
         else key_release()
     ).start()
+
+
+def monitor_fullscreen_app():
+    if config["hide_on_fullscreen"] and is_fullscreen_app_active():
+        root.withdraw()  # Hide the window
+    else:
+        # Adjust the position if fullscreen is active and offset is specified
+        if is_fullscreen_app_active():
+            y_fullscreen = top - config["height"] + 60 - config["offset_from_bottom_on_fullscreen"]
+            root.geometry(f"{config['width']}x{config['height']}+{x}+{y_fullscreen}")
+        else:
+            root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")  # Restore original position
+        root.deiconify()  # Show the window
+
+    # Check again after a short delay
+    root.after(1000, monitor_fullscreen_app)
+
+
+# Start monitoring for full-screen apps
+monitor_fullscreen_app()
 
 root.mainloop()

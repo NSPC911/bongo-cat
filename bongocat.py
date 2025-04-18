@@ -16,7 +16,7 @@ taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
 left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
 x = right - config["width"] - config["offset_from_right"]
-y = top - config["height"] + 60 - config["offset_from_bottom"]
+y = top - config["height"] + 62 - config["offset_from_bottom"]
 
 root = tk.Tk()
 root.attributes("-topmost", True)
@@ -52,15 +52,13 @@ def launch_config(icon, item):
 def reload_config(icon, item):
     global config, x, y
     config = get_config()
+    left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
-    # Recalculate window position
     x = right - config["width"] - config["offset_from_right"]
     y = top - config["height"] + 60 - config["offset_from_bottom"]
 
-    # Update window size and position
     root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
 
-    # Reload images with new dimensions
     global idle_image, leftpaw_image, rightpaw_image, idle_photo, leftpaw_photo, rightpaw_photo
     idle_image = load_image("idle.png")
     leftpaw_image = load_image("leftpaw.png")
@@ -69,7 +67,6 @@ def reload_config(icon, item):
     leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
     rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
 
-    # Update the label image
     label.config(image=idle_photo)
     label.image = idle_photo
 

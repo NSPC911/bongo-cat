@@ -36,7 +36,7 @@ jobs:
     - name: Build with PyInstaller
       run: |
         .\venv\Scripts\Activate.ps1
-        pyinstaller --noconsole --onefile --add-data "idle.png;." --add-data "leftpaw.png;." --add-data "rightpaw.png;." --icon=idle.ico bongocat.py
+        pyinstaller --noconsole --onefile --icon=idle.ico bongocat.py
       shell: pwsh
 
     - name: Upload Executable

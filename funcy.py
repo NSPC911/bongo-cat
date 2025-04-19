@@ -1,21 +1,62 @@
 import os
 import sys
+import shutil
+import stat
 from PIL import Image
 import ujson
 import win32gui
 import win32api
 import win32con
+import requests
+
+# get default cats
+cat_dir = os.path.join(
+    os.path.dirname(sys.executable if hasattr(sys, "_MEIPASS") else __file__),
+    "config",
+    "cats",
+)
+os.makedirs(cat_dir, exist_ok=True)
+cat_urls = [
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/idle.png",
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/leftpaw.png",
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/rightpaw.png",
+]
+
+
+def remove_readonly(func, path, _):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
 
 def get_config():
-    config_dir = os.path.join(
+    for url in cat_urls:
+        filename = os.path.join(cat_dir, "default_" + os.path.basename(url))
+        if not os.path.exists(filename):
+            response = requests.get(url)
+            with open(filename, "wb") as f:
+                f.write(response.content)
+    if hasattr(sys, "_MEIPASS"):
+        config_dir = os.path.join(os.path.dirname(sys.executable), "config")
+    else:
+        config_dir = os.path.join(os.path.dirname(__file__), "config")
+    os.makedirs(config_dir, exist_ok=True)
+    # check for old version
+    old_config_dir = os.path.join(
         os.getenv("APPDATA") if os.name == "nt" else os.path.expanduser("~/.config"),
         "bongo-cat",
     )
-    os.makedirs(config_dir, exist_ok=True)
+    if os.path.exists(old_config_dir):
+        for file in os.listdir(old_config_dir):
+            shutil.move(
+                os.path.join(old_config_dir, file),
+                os.path.join(config_dir, file),
+            )
+        shutil.rmtree(old_config_dir, onerror=remove_readonly)
     config_path = os.path.join(config_dir, "config.json")
     default_config = {
         "use_click": True,
         "use_keyboard": True,
+        "pawcurate": False,
         "delay": 0.1,
         "width": 174,
         "height": 105,
@@ -23,6 +64,11 @@ def get_config():
         "offset_from_right": 0,
         "hide_on_fullscreen": True,
         "offset_from_bottom_on_fullscreen": -60,
+        "cats": {
+            "idle": os.path.join(cat_dir, "default_idle.png"),
+            "leftpaw": os.path.join(cat_dir, "default_leftpaw.png"),
+            "rightpaw": os.path.join(cat_dir, "default_rightpaw.png"),
+        },
     }
     if not os.path.exists(config_path):
         with open(config_path, "w") as f:
@@ -41,17 +87,20 @@ def get_config():
     return file
 
 
+def dump_config(dictionary):
+    config_path = os.path.join(
+        os.path.dirname(sys.executable if hasattr(sys, "_MEIPASS") else __file__),
+        "config",
+    )
+    with open(os.path.join(config_path, "config.json"), "w") as f:
+        f.write(ujson.dumps(dictionary, indent=4))
+
+
 config = get_config()
 
 
-def resource_path(relative_path):
-    if hasattr(sys, "_MEIPASS"):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.getcwd(), relative_path)
-
-
 def load_image(path):
-    img = Image.open(resource_path(path)).convert("RGBA")
+    img = Image.open(path).convert("RGBA")
     img = img.resize((config["width"], config["height"]), Image.NEAREST)
     datas = img.getdata()
     newData = [

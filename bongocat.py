@@ -10,6 +10,7 @@ import pystray
 from funcy import load_image, get_config, is_fullscreen_app_active, dump_config
 import time
 import os
+import sys
 
 config = get_config()
 
@@ -70,9 +71,9 @@ def reload_config(icon, item):
         idle_photo, \
         leftpaw_photo, \
         rightpaw_photo
-    idle_image = load_image("idle.png")
-    leftpaw_image = load_image("leftpaw.png")
-    rightpaw_image = load_image("rightpaw.png")
+    idle_image = load_image(config["cats"]["idle"])
+    leftpaw_image = load_image(config["cats"]["left"])
+    rightpaw_image = load_image(config["cats"]["right"])
     idle_photo = ImageTk.PhotoImage(idle_image)
     leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
     rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)

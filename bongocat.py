@@ -7,10 +7,11 @@ from pynput import keyboard, mouse
 from pynput.keyboard import Key
 import threading
 import pystray
-from funcy import load_image, get_config, is_fullscreen_app_active, dump_config
+from funcy import load_image, get_config, is_fullscreen_app_active, dump_config, update_available
 import time
 import os
 import sys
+import webbrowser
 
 config = get_config()
 
@@ -42,7 +43,6 @@ root.geometry(f"+{x}+{y}")
 def quit_app(icon, item):
     icon.stop()
     root.quit()
-
 
 def launch_config(icon, item):
     os.startfile(
@@ -88,11 +88,12 @@ def toggle_config(key, icon, item):
     dump_config(config)
     reload_config(icon, item)
 
+def open_github(icon, item):
+    webbrowser.open("https://github.com/NSPC911/bongo-cat/releases/latest")
 
 def setup_tray_icon():
-    tray_image = idle_image.copy().resize((64, 64))  # use idle image for tray icon
+    tray_image = idle_image.copy().resize((64, 64))
     menu = pystray.Menu(
-        pystray.MenuItem("Quit", quit_app),
         pystray.MenuItem("Launch Config", launch_config),
         pystray.MenuItem("Reload Config", reload_config),
         pystray.MenuItem(
@@ -104,7 +105,7 @@ def setup_tray_icon():
             "React to",
             pystray.Menu(
                 pystray.MenuItem(
-                    "Click",
+                    "Mouse Clicks",
                     lambda icon, item: toggle_config("use_mouse", icon, item),
                     checked=lambda item: config["use_mouse"],
                 ),
@@ -115,6 +116,11 @@ def setup_tray_icon():
                 ),
             ),
         ),
+        pystray.MenuItem(
+            "Update Available!" if update_available()[0] else "No Updates",
+            open_github,
+        ),
+        pystray.MenuItem("Quit", quit_app),
     )
     icon = pystray.Icon("BongoCat", tray_image, "Bongo Cat", menu)
     threading.Thread(target=icon.run, daemon=True).start()

@@ -46,10 +46,8 @@ def quit_app(icon, item):
 def launch_config(icon, item):
     os.startfile(
         os.path.join(
-            os.getenv("APPDATA")
-            if os.name == "nt"
-            else os.path.expanduser("~/.config"),
-            "bongo-cat",
+            os.path.dirname(sys.executable if hasattr(sys, "_MEIPASS") else __file__),
+            "config",
         )
     )
 

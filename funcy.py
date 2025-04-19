@@ -54,7 +54,7 @@ def get_config():
         shutil.rmtree(old_config_dir, onerror=remove_readonly)
     config_path = os.path.join(config_dir, "config.json")
     default_config = {
-        "use_click": True,
+        "use_mouse": True,
         "use_keyboard": True,
         "pawcurate": False,
         "delay": 0.1,

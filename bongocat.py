@@ -72,8 +72,8 @@ def reload_config(icon, item):
         leftpaw_photo, \
         rightpaw_photo
     idle_image = load_image(config["cats"]["idle"])
-    leftpaw_image = load_image(config["cats"]["left"])
-    rightpaw_image = load_image(config["cats"]["right"])
+    leftpaw_image = load_image(config["cats"]["leftpaw"])
+    rightpaw_image = load_image(config["cats"]["rightpaw"])
     idle_photo = ImageTk.PhotoImage(idle_image)
     leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
     rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
@@ -105,8 +105,8 @@ def setup_tray_icon():
             pystray.Menu(
                 pystray.MenuItem(
                     "Click",
-                    lambda icon, item: toggle_config("use_click", icon, item),
-                    checked=lambda item: config["use_click"],
+                    lambda icon, item: toggle_config("use_mouse", icon, item),
+                    checked=lambda item: config["use_mouse"],
                 ),
                 pystray.MenuItem(
                     "Keyboard",
@@ -246,8 +246,10 @@ def thread_trigger_animation(key=None):
                     key in LEFT_KEYS["special"]
                 ):
                     show_paw(leftpaw_photo)
-                elif (hasattr(key, "char") and key.char in RIGHT_KEYS["char"]) or (
-                    key in RIGHT_KEYS["special"]
+                elif (
+                    (hasattr(key, "char") and key.char in RIGHT_KEYS["char"])
+                    or (key in RIGHT_KEYS["special"])
+                    or (key == "mouse")
                 ):
                     show_paw(rightpaw_photo)
                 elif key == Key.space:
@@ -282,10 +284,17 @@ def key_release():
 def listeners(startorstop):
     global keyboard_listener, mouse_listener
     if startorstop == "stop":
-        if keyboard_listener is not None:
-            keyboard_listener.stop()
-        if mouse_listener is not None:
-            mouse_listener.stop()
+        # try except for the off chance that you didnt define it
+        try:
+            if keyboard_listener is not None:
+                keyboard_listener.stop()
+        except NameError:
+            pass
+        try:
+            if mouse_listener is not None:
+                mouse_listener.stop()
+        except NameError:
+            pass
     else:
         if config["use_keyboard"]:
             keyboard_listener = keyboard.Listener(
@@ -293,9 +302,9 @@ def listeners(startorstop):
                 on_release=lambda key: key_release(),
             )
             keyboard_listener.start()
-        if config["use_click"]:
+        if config["use_mouse"]:
             mouse_listener = mouse.Listener(
-                on_click=lambda x, y, button, pressed: thread_trigger_animation()
+                on_click=lambda x, y, button, pressed: thread_trigger_animation("mouse")
                 if pressed
                 else key_release()
             )

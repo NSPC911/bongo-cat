@@ -39,6 +39,10 @@ jobs:
         pyinstaller --noconsole --onefile --icon=idle.ico bongocat.py
       shell: pwsh
 
+    - name: Get SHA256
+      run: Get-FileHash -Algorithm SHA256 -Path dist/bongocat.exe | Select-Object -ExpandProperty Hash
+      shell: pwsh
+
     - name: Upload Executable
       uses: actions/upload-artifact@v4
       with:

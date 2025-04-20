@@ -9,17 +9,23 @@ import win32api
 import win32con
 import requests
 
+def cd():
+    return os.path.dirname(sys.executable if hasattr(sys, "_MEIPASS") else __file__)
+
 # get default cats
 cat_dir = os.path.join(
-    os.path.dirname(sys.executable if hasattr(sys, "_MEIPASS") else __file__),
+    cd(),
     "config",
     "cats",
 )
 os.makedirs(cat_dir, exist_ok=True)
 cat_urls = [
-    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/idle.png",
-    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/leftpaw.png",
-    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/rightpaw.png",
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/cats/cat_idle.png",
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/cats/cat_idle_keyboard.png",
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/cats/cat_left_paw.png",
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/cats/cat_left_paw_keyboard.png",
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/cats/cat_right_paw.png",
+    "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/cats/cat_right_paw_keyboard.png",
 ]
 
 
@@ -30,15 +36,15 @@ def remove_readonly(func, path, _):
 
 def get_config():
     for url in cat_urls:
-        filename = os.path.join(cat_dir, "default_" + os.path.basename(url))
+        filename = os.path.join(cat_dir, os.path.basename(url))
         if not os.path.exists(filename):
             response = requests.get(url)
             with open(filename, "wb") as f:
                 f.write(response.content)
-    if hasattr(sys, "_MEIPASS"):
-        config_dir = os.path.join(os.path.dirname(sys.executable), "config")
-    else:
-        config_dir = os.path.join(os.path.dirname(__file__), "config")
+    config_dir = os.path.join(
+        cd(),
+        "config",
+    )
     os.makedirs(config_dir, exist_ok=True)
     # check for old version
     old_config_dir = os.path.join(
@@ -62,12 +68,21 @@ def get_config():
         "height": 105,
         "offset_from_bottom": 0,
         "offset_from_right": 0,
-        "hide_on_fullscreen": True,
-        "offset_from_bottom_on_fullscreen": -60,
-        "cats": {
-            "idle": os.path.join(cat_dir, "default_idle.png"),
-            "leftpaw": os.path.join(cat_dir, "default_leftpaw.png"),
-            "rightpaw": os.path.join(cat_dir, "default_rightpaw.png"),
+        "fullscreen": {
+            "show": True,
+            "offset_from_bottom": -60,
+            "use_offset_from_bottom": False,
+            "use_custom_cats": False,
+            "cat_states": {
+                "idle": os.path.join(cat_dir, "cat_idle_keyboard.png"),
+                "leftpaw": os.path.join(cat_dir, "cat_left_paw_keyboard.png"),
+                "rightpaw": os.path.join(cat_dir, "cat_right_paw_keyboard.png"),
+            }
+        },
+        "cat_states": {
+            "idle": os.path.join(cat_dir, "cat_idle.png"),
+            "leftpaw": os.path.join(cat_dir, "cat_left_paw.png"),
+            "rightpaw": os.path.join(cat_dir, "cat_right_paw.png"),
         },
     }
     if not os.path.exists(config_path):
@@ -81,6 +96,14 @@ def get_config():
         for i in default_config:
             if i not in file:
                 file[i] = default_config[i]
+            elif type(file[i]) is not type(default_config[i]):
+                file[i] = default_config[i]
+            elif type(file[i]) is dict:
+                for j in default_config[i]:
+                    if j not in file[i]:
+                        file[i][j] = default_config[i][j]
+                    elif type(file[i][j]) is not type(default_config[i][j]):
+                        file[i][j] = default_config[i][j]
     if original_config != file:
         with open(config_path, "w") as f:
             f.write(ujson.dumps(file, indent=4))

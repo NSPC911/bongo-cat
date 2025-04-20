@@ -19,16 +19,16 @@ taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
 left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
 x = right - config["width"] - config["offset_from_right"]
-y = top - config["height"] + 62 - config["offset_from_bottom"]
+y = top - config["height"] + 68 - config["offset_from_bottom"]
 
 root = tk.Tk()
 root.attributes("-topmost", True)
 root.overrideredirect(True)
 root.wm_attributes("-transparentcolor", "white")
 
-idle_image: Image = load_image(config["cats"]["idle"])
-leftpaw_image = load_image(config["cats"]["leftpaw"])
-rightpaw_image = load_image(config["cats"]["rightpaw"])
+idle_image: Image = load_image(config["cat_states"]["idle"])
+leftpaw_image = load_image(config["cat_states"]["leftpaw"])
+rightpaw_image = load_image(config["cat_states"]["rightpaw"])
 idle_photo = ImageTk.PhotoImage(idle_image)
 leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
 rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
@@ -60,7 +60,7 @@ def reload_config(icon, item):
     left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
     x = right - config["width"] - config["offset_from_right"]
-    y = top - config["height"] + 62 - config["offset_from_bottom"]
+    y = top - config["height"] + 68 - config["offset_from_bottom"]
 
     root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
 
@@ -71,9 +71,9 @@ def reload_config(icon, item):
         idle_photo, \
         leftpaw_photo, \
         rightpaw_photo
-    idle_image = load_image(config["cats"]["idle"])
-    leftpaw_image = load_image(config["cats"]["leftpaw"])
-    rightpaw_image = load_image(config["cats"]["rightpaw"])
+    idle_image = load_image(config["cat_states"]["idle"])
+    leftpaw_image = load_image(config["cat_states"]["leftpaw"])
+    rightpaw_image = load_image(config["cat_states"]["rightpaw"])
     idle_photo = ImageTk.PhotoImage(idle_image)
     leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
     rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
@@ -83,13 +83,13 @@ def reload_config(icon, item):
     listeners("start")
 
 
-def toggle_config(key, icon, item):
-    config[key] = not config[key]
+def toggle_config(key, icon, item, outer_key=None):
+    if outer_key is not None:
+        config[outer_key][key] = not config[outer_key][key]
+    else:
+        config[key] = not config[key]
     dump_config(config)
     reload_config(icon, item)
-
-def open_github(icon, item):
-    webbrowser.open("https://github.com/NSPC911/bongo-cat/releases/latest")
 
 def setup_tray_icon():
     tray_image = idle_image.copy().resize((64, 64))
@@ -117,8 +117,31 @@ def setup_tray_icon():
             ),
         ),
         pystray.MenuItem(
-            "Update Available!" if update_available()[0] else "No Updates",
-            open_github,
+            "Fullscreen Mode",
+            pystray.Menu(
+                pystray.MenuItem(
+                    "Show on Full Screen",
+                    lambda icon, item: toggle_config("show", icon, item, "fullscreen"),
+                    checked=lambda item: config["fullscreen"]["show"],
+                ),
+                pystray.MenuItem(
+                    "Use Custom Offset from Bottom",
+                    lambda icon, item: toggle_config("use_offset_from_bottom", icon, item, "fullscreen"),
+                    checked=lambda item: config["fullscreen"]["use_offset_from_bottom"],
+                    enabled=lambda item: config["fullscreen"]["show"],
+                ),
+                pystray.MenuItem(
+                    "Use Custom Image on Full Screen",
+                    lambda icon, item: toggle_config("use_custom_cats", icon, item, "fullscreen"),
+                    checked=lambda item: config["fullscreen"]["use_custom_cats"],
+                    enabled=lambda item: config["fullscreen"]["show"],
+                ),
+            ),
+        ),
+        pystray.MenuItem(
+            f"Update {update_available()[1]} Available!" if update_available()[0] else "No Updates",
+            lambda icon, item: webbrowser.open("https://github.com/NSPC911/bongo-cat/releases"),
+            enabled=update_available()[0],
         ),
         pystray.MenuItem("Quit", quit_app),
     )
@@ -321,16 +344,48 @@ listeners("start")
 
 
 def monitor_fullscreen_app():
-    if config["hide_on_fullscreen"] and is_fullscreen_app_active():
+    if (not config["fullscreen"]["show"]) and is_fullscreen_app_active():
         root.withdraw()
     else:
         if is_fullscreen_app_active():
-            y_fullscreen = (
-                top - config["height"] + 62 - config["offset_from_bottom_on_fullscreen"]
-            )
-            root.geometry(f"{config['width']}x{config['height']}+{x}+{y_fullscreen}")
+            if config["fullscreen"]["use_offset_from_bottom"]:
+                y_fullscreen = (
+                    top - config["height"] + 68 - config["fullscreen"]["offset_from_bottom"]
+                )
+                root.geometry(f"{config['width']}x{config['height']}+{x}+{y_fullscreen}")
+            else:
+                root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
+            global idle_image, leftpaw_image, rightpaw_image, idle_photo, leftpaw_photo, rightpaw_photo
+            if config["fullscreen"]["use_custom_cats"]:
+                idle_image = load_image(config["fullscreen"]["cat_states"]["idle"])
+                leftpaw_image = load_image(config["fullscreen"]["cat_states"]["leftpaw"])
+                rightpaw_image = load_image(config["fullscreen"]["cat_states"]["rightpaw"])
+                idle_photo = ImageTk.PhotoImage(idle_image)
+                leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
+                rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
+                label.config(image=idle_photo)
+                label.image = idle_photo
+            else:
+                idle_image = load_image(config["cat_states"]["idle"])
+                leftpaw_image = load_image(config["cat_states"]["leftpaw"])
+                rightpaw_image = load_image(config["cat_states"]["rightpaw"])
+                idle_photo = ImageTk.PhotoImage(idle_image)
+                leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
+                rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
+                label.config(image=idle_photo)
+                label.image = idle_photo
+            label.update()
         else:
             root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
+            idle_image = load_image(config["cat_states"]["idle"])
+            leftpaw_image = load_image(config["cat_states"]["leftpaw"])
+            rightpaw_image = load_image(config["cat_states"]["rightpaw"])
+            idle_photo = ImageTk.PhotoImage(idle_image)
+            leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
+            rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
+            label.config(image=idle_photo)
+            label.image = idle_photo
+            label.update()
         root.deiconify()
     root.after(1000, monitor_fullscreen_app)
 

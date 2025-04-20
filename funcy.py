@@ -156,7 +156,7 @@ def is_fullscreen_app_active():
     return (right - left == screen_width) and (bottom - top == screen_height)
 
 def update_available():
-    current = "v1.0.1"
+    current = "v1.0.2"
     response = requests.get(
         "https://api.github.com/repos/NSPC911/bongo-cat/releases/latest"
     )

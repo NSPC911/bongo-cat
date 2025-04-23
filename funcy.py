@@ -9,8 +9,10 @@ import win32api
 import win32con
 import requests
 
+
 def cd():
     return os.path.dirname(sys.executable if hasattr(sys, "_MEIPASS") else __file__)
+
 
 # get default cats
 cat_dir = os.path.join(
@@ -77,7 +79,7 @@ def get_config():
                 "idle": os.path.join(cat_dir, "cat_idle_keyboard.png"),
                 "leftpaw": os.path.join(cat_dir, "cat_left_paw_keyboard.png"),
                 "rightpaw": os.path.join(cat_dir, "cat_right_paw_keyboard.png"),
-            }
+            },
         },
         "cat_states": {
             "idle": os.path.join(cat_dir, "cat_idle.png"),
@@ -154,6 +156,7 @@ def is_fullscreen_app_active():
 
     # Check if the window is full-screen
     return (right - left == screen_width) and (bottom - top == screen_height)
+
 
 def update_available():
     current = "v1.0.2"

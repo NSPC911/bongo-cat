@@ -7,7 +7,13 @@ from pynput import keyboard, mouse
 from pynput.keyboard import Key
 import threading
 import pystray
-from funcy import load_image, get_config, is_fullscreen_app_active, dump_config, update_available
+from funcy import (
+    load_image,
+    get_config,
+    is_fullscreen_app_active,
+    dump_config,
+    update_available,
+)
 import time
 import os
 import sys
@@ -43,6 +49,7 @@ root.geometry(f"+{x}+{y}")
 def quit_app(icon, item):
     icon.stop()
     root.quit()
+
 
 def launch_config(icon, item):
     os.startfile(
@@ -91,6 +98,7 @@ def toggle_config(key, icon, item, outer_key=None):
     dump_config(config)
     reload_config(icon, item)
 
+
 def setup_tray_icon():
     tray_image = idle_image.copy().resize((64, 64))
     menu = pystray.Menu(
@@ -126,21 +134,29 @@ def setup_tray_icon():
                 ),
                 pystray.MenuItem(
                     "Use Custom Offset from Bottom",
-                    lambda icon, item: toggle_config("use_offset_from_bottom", icon, item, "fullscreen"),
+                    lambda icon, item: toggle_config(
+                        "use_offset_from_bottom", icon, item, "fullscreen"
+                    ),
                     checked=lambda item: config["fullscreen"]["use_offset_from_bottom"],
                     enabled=lambda item: config["fullscreen"]["show"],
                 ),
                 pystray.MenuItem(
                     "Use Custom Image on Full Screen",
-                    lambda icon, item: toggle_config("use_custom_cats", icon, item, "fullscreen"),
+                    lambda icon, item: toggle_config(
+                        "use_custom_cats", icon, item, "fullscreen"
+                    ),
                     checked=lambda item: config["fullscreen"]["use_custom_cats"],
                     enabled=lambda item: config["fullscreen"]["show"],
                 ),
             ),
         ),
         pystray.MenuItem(
-            f"Update {update_available()[1]} Available!" if update_available()[0] else "No Updates",
-            lambda icon, item: webbrowser.open("https://github.com/NSPC911/bongo-cat/releases"),
+            f"Update {update_available()[1]} Available!"
+            if update_available()[0]
+            else "No Updates",
+            lambda icon, item: webbrowser.open(
+                "https://github.com/NSPC911/bongo-cat/releases"
+            ),
             enabled=update_available()[0],
         ),
         pystray.MenuItem("Quit", quit_app),
@@ -263,6 +279,10 @@ RIGHT_KEYS = {
         Key.f8,
         Key.f9,
         Key.f10,
+        Key.left,
+        Key.right,
+        Key.up,
+        Key.down,
     ],
 }
 
@@ -270,6 +290,7 @@ RIGHT_KEYS = {
 def thread_trigger_animation(key=None):
     def run():
         with animation_lock:
+            print(key)
             if config["pawcurate"] and key is not None:
                 if (hasattr(key, "char") and key.char in LEFT_KEYS["char"]) or (
                     key in LEFT_KEYS["special"]
@@ -350,16 +371,31 @@ def monitor_fullscreen_app():
         if is_fullscreen_app_active():
             if config["fullscreen"]["use_offset_from_bottom"]:
                 y_fullscreen = (
-                    top - config["height"] + 68 - config["fullscreen"]["offset_from_bottom"]
+                    top
+                    - config["height"]
+                    + 68
+                    - config["fullscreen"]["offset_from_bottom"]
                 )
-                root.geometry(f"{config['width']}x{config['height']}+{x}+{y_fullscreen}")
+                root.geometry(
+                    f"{config['width']}x{config['height']}+{x}+{y_fullscreen}"
+                )
             else:
                 root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
-            global idle_image, leftpaw_image, rightpaw_image, idle_photo, leftpaw_photo, rightpaw_photo
+            global \
+                idle_image, \
+                leftpaw_image, \
+                rightpaw_image, \
+                idle_photo, \
+                leftpaw_photo, \
+                rightpaw_photo
             if config["fullscreen"]["use_custom_cats"]:
                 idle_image = load_image(config["fullscreen"]["cat_states"]["idle"])
-                leftpaw_image = load_image(config["fullscreen"]["cat_states"]["leftpaw"])
-                rightpaw_image = load_image(config["fullscreen"]["cat_states"]["rightpaw"])
+                leftpaw_image = load_image(
+                    config["fullscreen"]["cat_states"]["leftpaw"]
+                )
+                rightpaw_image = load_image(
+                    config["fullscreen"]["cat_states"]["rightpaw"]
+                )
                 idle_photo = ImageTk.PhotoImage(idle_image)
                 leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
                 rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)

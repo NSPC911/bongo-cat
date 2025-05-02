@@ -1,4 +1,7 @@
 altgraph==0.17.4
+certifi==2025.4.26
+charset-normalizer==3.4.1
+idna==3.10
 packaging==24.2
 pefile==2023.2.7
 pillow==11.2.1
@@ -8,6 +11,8 @@ pynput==1.8.1
 pystray==0.19.5
 pywin32==310
 pywin32-ctypes==0.2.3
+requests==2.32.3
 setuptools==78.1.0
 six==1.17.0
 ujson==5.10.0
+urllib3==2.4.0

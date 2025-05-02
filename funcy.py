@@ -140,21 +140,13 @@ def is_fullscreen_app_active():
     foreground_window = win32gui.GetForegroundWindow()
     if not foreground_window:
         return False
-
-    # Exclude the desktop window
     desktop_window = win32gui.FindWindow("Progman", None)
     workerw_window = win32gui.FindWindow("WorkerW", None)
     if foreground_window == desktop_window or foreground_window == workerw_window:
         return False
-
-    # Get the dimensions of the foreground window
     left, top, right, bottom = win32gui.GetWindowRect(foreground_window)
-
-    # Get the screen dimensions
     screen_width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
     screen_height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
-
-    # Check if the window is full-screen
     return (right - left == screen_width) and (bottom - top == screen_height)
 
 
@@ -163,5 +155,8 @@ def update_available():
     response = requests.get(
         "https://api.github.com/repos/NSPC911/bongo-cat/releases/latest"
     )
-    latest = response.json()["tag_name"]
+    try:
+        latest = response.json()["tag_name"]
+    except KeyError:
+        return [False, current]
     return [latest != current, latest]

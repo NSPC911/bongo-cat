@@ -22,6 +22,7 @@ import webbrowser
 config = get_config()
 
 taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
+taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
 left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
 x = right - config["width"] - config["offset_from_right"]
@@ -64,6 +65,7 @@ def reload_config(icon, item):
     listeners("stop")
     global config, x, y, left, top, right, bottom
     config = get_config()
+    taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
     left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
     x = right - config["width"] - config["offset_from_right"]
@@ -93,8 +95,10 @@ def reload_config(icon, item):
 def toggle_config(key, icon, item, outer_key=None):
     if outer_key is not None:
         config[outer_key][key] = not config[outer_key][key]
+        print(f"{outer_key}-{key} <===> {config[outer_key][key]}")
     else:
         config[key] = not config[key]
+        print(f"{key} <===> {config[key]}")
     dump_config(config)
     reload_config(icon, item)
 

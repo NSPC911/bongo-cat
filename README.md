@@ -6,19 +6,22 @@ A cute cat decided to sit on your taskbar and tap to your key presses!
 
 ## Installation
 
-1. Download the executable from the [releases](https://github.com/NSPC911/bongo-cat)
-2. Run the executable
-3. Edit your config at `C:/Users/<user>/AppData/Roaming/bongo-cat`
-4. Make sure to quit from the tasktray everytime you edit the config (trying to find a better solution)
+Scoop:
+```sh
+scoop bucket add NSPC911-le-bucket https://github.com/nspc911/le-bucket
+scoop install bongocat
+```
+Normal:
+1. Get executable from [releases](https://github.com/NSPC911/bongo-cat)
+2. Run executable
+  - Reminder that an updater for this hasn't been made, so scoop is super recommended!
 
 ## Build
 ```py
 git clone https://github.com/NSPC911/bongo-cat
 cd bongo-cat
-python -m venv venv
-venv/Scripts/activate
-pip install -r requirements.txt
-pyinstaller --noconsole --onefile --add-data "idle.png;." --add-data "leftpaw.png;." --add-data "rightpaw.png;." bongocat.py
+uv sync
+pyinstaller --noconsole --onefile bongocat.py
 ```
 
 <sub>Starring this repo means a lot to me so I can get the encouragement to make stupid projects like this!</sub>

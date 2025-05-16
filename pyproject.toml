@@ -1,0 +1,22 @@
+[project]
+name = "bongo-cat"
+description = "You know the bongo cat steam game? Well here is a non-keylogger version made with python (i love python)"
+readme = "README.md"
+license = "MIT"
+version = "1.0.3"
+requires-python = ">=3.13"
+dependencies = [
+    "pynput>=1.8.1",
+    "pystray>=0.19.5",
+    "pywin32>=310",
+    "requests>=2.32.3",
+    "ujson>=5.10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/NSPC911/bongo-cat"
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.13.0",
+]

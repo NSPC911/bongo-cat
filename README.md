@@ -2,7 +2,7 @@
 
 A cute cat decided to sit on your taskbar and tap to your key presses!
 
-<sub>Made on Windows, untested on Unix systems</sub>
+<sub>Made on Windows, pull requests are welcome to add support for Unix systems!</sub>
 
 ## Installation
 

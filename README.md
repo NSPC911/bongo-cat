@@ -2,6 +2,8 @@
 
 A cute cat decided to sit on your taskbar and tap to your key presses!
 
+https://github.com/user-attachments/assets/8ca31967-54a4-40e9-b05e-d2bf4efb2cba
+
 <sub>Made on Windows, pull requests are welcome to add support for Unix systems!</sub>
 
 ## Installation

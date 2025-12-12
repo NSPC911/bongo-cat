@@ -152,7 +152,7 @@ def is_fullscreen_app_active():
 
 
 def update_available():
-    current = "v1.0.2"
+    current = "v1.0.4"
     try:
         response = requests.get(
             "https://api.github.com/repos/NSPC911/bongo-cat/releases/latest"

@@ -3,7 +3,7 @@ name = "bongo-cat"
 description = "You know the bongo cat steam game? Well here is a non-keylogger version made with python (i love python)"
 readme = "README.md"
 license = "MIT"
-version = "1.0.3"
+version = "1.0.4"
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "pynput>=1.8.1",

@@ -19,6 +19,4 @@ Homepage = "https://github.com/NSPC911/bongo-cat"
 [dependency-groups]
 dev = [
     "nuitka>=2.8.9",
-    "pyinstaller>=6.13.0",
-    "ty>=0.0.1a33",
 ]

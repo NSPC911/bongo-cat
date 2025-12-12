@@ -14,39 +14,28 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v4
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v6
       with:
-        python-version: '3.12'
-
-    - name: Create and activate virtual environment
-      run: |
-        python -m venv venv
-        .\venv\Scripts\Activate.ps1
-        python -m pip install --upgrade pip
-      shell: pwsh
+        activate-environment: true
 
     - name: Install dependencies
       run: |
-        .\venv\Scripts\Activate.ps1
-        pip install -r requirements.txt
-        pip install pyinstaller
+        uv sync --dev
       shell: pwsh
 
     - name: Build with PyInstaller
       run: |
-        .\venv\Scripts\Activate.ps1
-        pyinstaller --noconsole --onefile --icon=idle.ico bongocat.py
+        nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico
       shell: pwsh
 
     - name: Get SHA256
-      run: Get-FileHash -Algorithm SHA256 -Path dist/bongocat.exe | Select-Object -ExpandProperty Hash
+      run: Get-FileHash -Algorithm SHA256 -Path ./bongocat.dist/bongocat.exe | Select-Object -ExpandProperty Hash
       shell: pwsh
 
     - name: Upload Executable
       uses: actions/upload-artifact@v4
       with:
         name: bongo-cat
-        path: dist/*.exe
+        path: bongocat.dist/*.exe
         retention-days: 30
-

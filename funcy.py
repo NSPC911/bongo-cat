@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import stat
+from typing import cast
 from PIL import Image
 import ujson
 import win32gui
@@ -49,7 +50,7 @@ def get_config():
     )
     os.makedirs(config_dir, exist_ok=True)
     # check for old version
-    old_config_dir = os.path.join(
+    old_config_dir = os.path.join(  # ty: ignore[no-matching-overload]
         os.getenv("APPDATA") if os.name == "nt" else os.path.expanduser("~/.config"),
         "bongo-cat",
     )
@@ -100,12 +101,12 @@ def get_config():
                 file[i] = default_config[i]
             elif type(file[i]) is not type(default_config[i]):
                 file[i] = default_config[i]
-            elif type(file[i]) is dict:
-                for j in default_config[i]:
+            elif isinstance(type(file[i]), dict):
+                for j in cast(dict, default_config[i]):
                     if j not in file[i]:
-                        file[i][j] = default_config[i][j]
-                    elif type(file[i][j]) is not type(default_config[i][j]):
-                        file[i][j] = default_config[i][j]
+                        file[i][j] = cast(dict, default_config[i])[j]
+                    elif type(file[i][j]) is not type(cast(dict, default_config[i])[j]):
+                        file[i][j] = cast(dict, default_config[i])[j]
     if original_config != file:
         with open(config_path, "w") as f:
             f.write(ujson.dumps(file, indent=4))
@@ -126,10 +127,10 @@ config = get_config()
 
 def load_image(path):
     img = Image.open(path).convert("RGBA")
-    img = img.resize((config["width"], config["height"]), Image.NEAREST)
+    img = img.resize((config["width"], config["height"]), Image.Resampling.NEAREST)
     datas = img.getdata()
     newData = [
-        (255, 255, 255, 0) if all(v > 240 for v in pixel[:3]) else pixel
+        (255, 255, 255, 0) if all(v > 240 for v in cast(tuple, pixel)[:3]) else pixel
         for pixel in datas
     ]
     img.putdata(newData)
@@ -152,9 +153,12 @@ def is_fullscreen_app_active():
 
 def update_available():
     current = "v1.0.2"
-    response = requests.get(
-        "https://api.github.com/repos/NSPC911/bongo-cat/releases/latest"
-    )
+    try:
+        response = requests.get(
+            "https://api.github.com/repos/NSPC911/bongo-cat/releases/latest"
+        )
+    except requests.exceptions.ConnectionError:
+        return [False, current]
     try:
         latest = response.json()["tag_name"]
     except KeyError:

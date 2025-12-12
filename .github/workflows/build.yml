@@ -18,6 +18,7 @@ jobs:
       uses: astral-sh/setup-uv@v6
       with:
         activate-environment: true
+        python-version: "3.12"
 
     - name: Install dependencies
       run: |
@@ -26,7 +27,7 @@ jobs:
 
     - name: Build with PyInstaller
       run: |
-        nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico
+        uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico
       shell: pwsh
 
     - name: Get SHA256

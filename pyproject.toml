@@ -4,7 +4,7 @@ description = "You know the bongo cat steam game? Well here is a non-keylogger v
 readme = "README.md"
 license = "MIT"
 version = "1.0.3"
-requires-python = ">=3.13"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "pynput>=1.8.1",
     "pystray>=0.19.5",

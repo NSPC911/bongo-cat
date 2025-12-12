@@ -368,7 +368,21 @@ def listeners(startorstop):
 listeners("start")
 
 
+last_taskbar_rect = (left, top, right, bottom)
+
+
 def monitor_fullscreen_app():
+    global last_taskbar_rect, x, y, left, top, right, bottom
+    # Check for resolution/taskbar changes
+    taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
+    current_rect = win32gui.GetWindowRect(taskbar)
+    if current_rect != last_taskbar_rect:
+        last_taskbar_rect = current_rect
+        left, top, right, bottom = current_rect
+        x = right - config["width"] - config["offset_from_right"]
+        y = top - config["height"] + 68 - config["offset_from_bottom"]
+        root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
+
     if (not config["fullscreen"]["show"]) and is_fullscreen_app_active():
         root.withdraw()
     else:

@@ -27,7 +27,7 @@ jobs:
 
     - name: Build with PyInstaller
       run: |
-        uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico
+        uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=no
       shell: pwsh
 
     - name: Get SHA256
@@ -38,5 +38,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: bongo-cat
-        path: bongocat.dist/*.exe
+        path: bongocat.dist
         retention-days: 30

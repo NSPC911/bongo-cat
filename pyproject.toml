@@ -6,11 +6,11 @@ license = "MIT"
 version = "1.0.4"
 requires-python = ">=3.12,<3.14"
 dependencies = [
+    "orjson>=3.11.5",
     "pynput>=1.8.1",
     "pystray>=0.19.5",
     "pywin32>=310",
     "requests>=2.32.3",
-    "ujson>=5.10.0",
 ]
 
 [project.urls]
@@ -19,4 +19,31 @@ Homepage = "https://github.com/NSPC911/bongo-cat"
 [dependency-groups]
 dev = [
     "nuitka>=2.8.9",
+    "ruff>=0.14.6",
 ]
+
+[tool.ruff.lint]
+select = [
+  "ASYNC251",
+  "COM819",
+  "C400",
+  "DOC",
+  "D404",
+  "E",
+  "F",
+  "I",
+  "N801", "N802", "N805",
+  "PLE1142",
+  "Q",
+  "SIM",
+  "TD",
+  "W",
+]
+ignore = ["W505", "E501", "ANN002", "ANN003", "TD002", "TD003"]
+preview = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+preview = true

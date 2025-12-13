@@ -1,23 +1,27 @@
-import tkinter as tk
-from PIL import ImageTk
-from PIL.Image import Image
-import win32gui
-from random import randint
-from pynput import keyboard, mouse
-from pynput.keyboard import Key
-import threading
-import pystray
-from funcy import (
-    load_image,
-    get_config,
-    is_fullscreen_app_active,
-    dump_config,
-    update_available,
-)
-import time
 import os
 import sys
+import threading
+import time
+import tkinter as tk
 import webbrowser
+from random import randint
+
+import pystray
+import win32.win32gui as win32gui
+from PIL import ImageTk
+from PIL.Image import Image
+from pynput import keyboard, mouse
+from pynput.keyboard import Key
+
+from funcy import (
+    config_dir,
+    dump_config,
+    get_config,
+    is_fullscreen_app_active,
+    load_image,
+    update_available,
+)
+import contextlib
 
 config = get_config()
 
@@ -33,12 +37,56 @@ root.attributes("-topmost", True)
 root.overrideredirect(True)
 root.wm_attributes("-transparentcolor", "white")
 
-idle_image: Image = load_image(config["cat_states"]["idle"])
-leftpaw_image = load_image(config["cat_states"]["leftpaw"])
-rightpaw_image = load_image(config["cat_states"]["rightpaw"])
-idle_photo = ImageTk.PhotoImage(idle_image)
-leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
-rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
+try:
+    idle_image: Image = load_image(config["cat_states"]["idle"])
+    leftpaw_image: Image = load_image(config["cat_states"]["leftpaw"])
+    rightpaw_image: Image = load_image(config["cat_states"]["rightpaw"])
+    idle_photo = ImageTk.PhotoImage(idle_image)
+    leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
+    rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
+except Exception:
+    import traceback
+
+    last_log_file = os.path.join(config_dir, "last_error")
+    tb_text = traceback.format_exc()
+    with open(last_log_file, "w", encoding="utf-8") as f:
+        f.write(tb_text)
+
+    try:
+        with contextlib.suppress(Exception):
+            root.destroy()
+
+        err_root = tk.Tk()
+        err_root.title("Bongo Cat - Error")
+        err_root.attributes("-topmost", True)
+        screen_w = err_root.winfo_screenwidth()
+        screen_h = err_root.winfo_screenheight()
+        width = int(screen_w * 0.5)
+        height = int(screen_h * 0.5)
+        x = int((screen_w - width) / 2)
+        y = int((screen_h - height) / 2)
+        err_root.geometry(f"{width}x{height}+{x}+{y}")
+
+        frame = tk.Frame(err_root)
+        frame.pack(fill="both", expand=True)
+
+        text = tk.Text(frame, wrap="none", font=("TkFixedFont", 10), borderwidth=0)
+        xscroll = tk.Scrollbar(frame, orient="horizontal", command=text.xview)
+        yscroll = tk.Scrollbar(frame, orient="vertical", command=text.yview)
+        text.configure(xscrollcommand=xscroll.set, yscrollcommand=yscroll.set)
+        yscroll.pack(side="right", fill="y")
+        xscroll.pack(side="bottom", fill="x")
+        text.pack(side="left", fill="both", expand=True)
+        text.insert("1.0", tb_text)
+        text.configure(state="disabled")
+
+        err_root.focus_force()
+        err_root.grab_set()
+        err_root.mainloop()
+    except Exception:
+        pass
+
+    raise SystemExit()
 
 
 label = tk.Label(root, image=idle_photo, bg="white")
@@ -88,7 +136,7 @@ def reload_config(icon, item):
     rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
 
     label.config(image=idle_photo)
-    label.image = idle_photo
+    setattr(label, "image", idle_photo)
     listeners("start")
 
 
@@ -174,7 +222,8 @@ setup_tray_icon()
 
 def show_paw(image):
     label.config(image=image)
-    label.image = image
+
+    setattr(label, "image", image)
     root.update()
 
 
@@ -335,6 +384,9 @@ def key_release():
     key_pressed = False
 
 
+keyboard_listener, mouse_listener = None, None
+
+
 def listeners(startorstop):
     global keyboard_listener, mouse_listener
     if startorstop == "stop":
@@ -418,7 +470,7 @@ def monitor_fullscreen_app():
                 leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
                 rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
                 label.config(image=idle_photo)
-                label.image = idle_photo
+                setattr(label, "image", idle_photo)
             else:
                 idle_image = load_image(config["cat_states"]["idle"])
                 leftpaw_image = load_image(config["cat_states"]["leftpaw"])
@@ -427,7 +479,7 @@ def monitor_fullscreen_app():
                 leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
                 rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
                 label.config(image=idle_photo)
-                label.image = idle_photo
+                setattr(label, "image", idle_photo)
             label.update()
         else:
             root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
@@ -438,7 +490,7 @@ def monitor_fullscreen_app():
             leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
             rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
             label.config(image=idle_photo)
-            label.image = idle_photo
+            setattr(label, "image", idle_photo)
             label.update()
         root.deiconify()
     root.after(1000, monitor_fullscreen_app)

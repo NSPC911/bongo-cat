@@ -1,4 +1,4 @@
-name: Build with pyInstaller
+name: Build with Nuitka
 
 on:
   push:
@@ -25,9 +25,13 @@ jobs:
         uv sync --dev
       shell: pwsh
 
-    - name: Build with PyInstaller
+    - name: Build with Nuitka
       run: |
-        uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=no
+        uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=no --assume-yes-for-downloads
+      shell: pwsh
+
+    - name: List dist items
+      run: Get-ChildItem -Recurse .\bongocat.dist
       shell: pwsh
 
     - name: Get SHA256

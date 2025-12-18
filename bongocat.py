@@ -1,5 +1,5 @@
+import contextlib
 import os
-import sys
 import threading
 import time
 import tkinter as tk
@@ -21,7 +21,6 @@ from funcy import (
     load_image,
     update_available,
 )
-import contextlib
 
 config = get_config()
 

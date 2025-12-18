@@ -102,10 +102,7 @@ def quit_app(icon, item):
 
 def launch_config(icon, item):
     os.startfile(
-        os.path.join(
-            os.path.dirname(sys.executable if hasattr(sys, "_MEIPASS") else __file__),
-            "config",
-        )
+        config_dir
     )
 
 

@@ -16,14 +16,24 @@ scoop install bongocat
 Normal:
 1. Get executable from [releases](https://github.com/NSPC911/bongo-cat)
 2. Run executable
-  - Reminder that an updater for this hasn't been made, so scoop is super recommended!
+  - Reminder that an updater for this isn't properly implemented **at all**, so please use scoop!
 
 ## Build
-```py
+```shell
 git clone https://github.com/NSPC911/bongo-cat
 cd bongo-cat
 uv sync
-pyinstaller --noconsole --onefile bongocat.py
+uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=no --assume-yes-for-downloads
+# keep in mind that this command takes _a while (like 5+ minutes)_ to complete
 ```
 
 <sub>Starring this repo means a lot to me so I can get the encouragement to make stupid projects like this!</sub>
+```
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣶⣄⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣦⣄⣀⡀⣠⣾⡇⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠿⢿⣿⣿⡇⠀⠀⠀⠀
+⠀⣶⣿⣦⣜⣿⣿⣿⡟⠻⣿⣿⣿⣿⣿⣿⣿⡿⢿⡏⣴⣺⣦⣙⣿⣷⣄⠀⠀⠀
+⠀⣯⡇⣻⣿⣿⣿⣿⣷⣾⣿⣬⣥⣭⣽⣿⣿⣧⣼⡇⣯⣇⣹⣿⣿⣿⣿⣧⠀⠀
+⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠸⣿⣿⣿⣿⣿⣿⣿⣷⠀le bongocat
+```

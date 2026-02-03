@@ -9,38 +9,60 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+          - os: windows-11-arm
+            name: windows-arm
+    runs-on: ${{ matrix.os }}
+    name: Nuitka Build (${{ matrix.name }})
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Setup uv
-      uses: astral-sh/setup-uv@v6
-      with:
-        activate-environment: true
-        python-version: "3.12"
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+          python-version: "3.12"
+      - name: Cache Nuitka
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/Nuitka
+            ~/AppData/Local/Nuitka/Nuitka
+            ~/Library/Caches/Nuitka
+            rovr.build
+          key: nuitka-${{ matrix.name }}
+          restore-keys: |
+            nuitka-${{ matrix.name }}
 
-    - name: Install dependencies
-      run: |
-        uv sync --dev
-      shell: pwsh
+      - name: Cache .venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ matrix.name }}
+          restore-keys: |
+            venv-${{ matrix.name }}
 
-    - name: Build with Nuitka
-      run: |
-        uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=no --assume-yes-for-downloads
-      shell: pwsh
+      - name: Ensure latest factory version of nuitka
+        run: uv sync --upgrade-package nuitka --no-dev --group build
 
-    - name: List dist items
-      run: Get-ChildItem -Recurse .\bongocat.dist
-      shell: pwsh
+      - name: Build with Nuitka
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force bongocat.dist -ErrorAction SilentlyContinue
+          uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=yes --assume-yes-for-downloads --enable-plugins=no-qt
 
-    - name: Get SHA256
-      run: Get-FileHash -Algorithm SHA256 -Path ./bongocat.dist/bongocat.exe | Select-Object -ExpandProperty Hash
-      shell: pwsh
+      - name: List dist items
+        run: Get-ChildItem -Recurse -Force .\bongocat.dist
+        shell: pwsh
 
-    - name: Upload Executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: bongo-cat
-        path: bongocat.dist
-        retention-days: 30
+      - name: Upload Executable
+        uses: actions/upload-artifact@v4
+        with:
+          path: bongocat.dist
+          name: bongo-cat-${{ matrix.name }}
+          retention-days: 30

@@ -6,21 +6,30 @@ license = "MIT"
 version = "1.0.4"
 requires-python = ">=3.12,<3.14"
 dependencies = [
-    "orjson>=3.11.5",
-    "pynput>=1.8.1",
-    "pystray>=0.19.5",
-    "pywin32>=310",
-    "requests>=2.32.3",
+  "orjson>=3.11.5",
+  "pynput>=1.8.1",
+  "pystray>=0.19.5",
+  "pywin32>=310",
+  "requests>=2.32.3",
 ]
 
 [project.urls]
 Homepage = "https://github.com/NSPC911/bongo-cat"
 
 [dependency-groups]
-dev = [
-    "nuitka>=2.8.9",
-    "ruff>=0.14.6",
+build = [
+  "nuitka",
+  "zstandard>=0.25.0",
 ]
+dev = [
+  "ruff>=0.14.6",
+]
+
+[tool.uv]
+compile-bytecode = true
+
+[tool.uv.sources]
+nuitka = { git = "https://github.com/Nuitka/Nuitka", rev = "factory" }
 
 [tool.ruff.lint]
 select = [

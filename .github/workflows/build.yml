@@ -19,7 +19,7 @@ jobs:
             name: windows-arm
 
     runs-on: ${{ matrix.os }}
-    name: Nuitka Build (${{ matrix.name }})
+    name: Nuitka Build Standalone (${{ matrix.name }})
     steps:
       - uses: actions/checkout@v3
 
@@ -79,7 +79,7 @@ jobs:
             name: windows-arm
 
     runs-on: ${{ matrix.os }}
-    name: Nuitka Build (${{ matrix.name }})
+    name: Nuitka Build Onefile (${{ matrix.name }})
     steps:
       - uses: actions/checkout@v3
 
@@ -117,13 +117,13 @@ jobs:
           Remove-Item -Recurse -Force bongocat.dist -ErrorAction SilentlyContinue
           uv run nuitka --mode=onefile .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=yes --assume-yes-for-downloads --enable-plugins=no-qt --onefile-cache-mode=cached --onefile-child-grace-time=0
 
-      - name: List dist items
-        run: Get-ChildItem -Recurse -Force .\bongocat.dist
+      - name: Get Executable Hash
+        run: Get-FileHash .\bongocat.exe -Algorithm SHA256
         shell: pwsh
 
       - name: Upload Executable
         uses: actions/upload-artifact@v4
         with:
-          path: bongocat.dist
+          path: bongocat.exe
           name: bongo-cat-onefile-${{ matrix.name }}
           retention-days: 30

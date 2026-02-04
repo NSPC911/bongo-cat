@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-standalone:
     strategy:
       fail-fast: false
       matrix:
@@ -17,6 +17,7 @@ jobs:
             name: windows-x64
           - os: windows-11-arm
             name: windows-arm
+
     runs-on: ${{ matrix.os }}
     name: Nuitka Build (${{ matrix.name }})
     steps:
@@ -64,5 +65,65 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: bongocat.dist
-          name: bongo-cat-${{ matrix.name }}
+          name: bongo-cat-standalone-${{ matrix.name }}
+          retention-days: 30
+
+  build-onefile:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+          - os: windows-11-arm
+            name: windows-arm
+
+    runs-on: ${{ matrix.os }}
+    name: Nuitka Build (${{ matrix.name }})
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+          python-version: "3.12"
+      - name: Cache Nuitka
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/Nuitka
+            ~/AppData/Local/Nuitka/Nuitka
+            ~/Library/Caches/Nuitka
+            rovr.build
+          key: nuitka-${{ matrix.name }}
+          restore-keys: |
+            nuitka-${{ matrix.name }}
+
+      - name: Cache .venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ matrix.name }}
+          restore-keys: |
+            venv-${{ matrix.name }}
+
+      - name: Ensure latest factory version of nuitka
+        run: uv sync --upgrade-package nuitka --no-dev --group build
+
+      - name: Build with Nuitka
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force bongocat.dist -ErrorAction SilentlyContinue
+          uv run nuitka --mode=onefile .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=yes --assume-yes-for-downloads --enable-plugins=no-qt --onefile-cache-mode=cached --onefile-child-grace-time=0
+
+      - name: List dist items
+        run: Get-ChildItem -Recurse -Force .\bongocat.dist
+        shell: pwsh
+
+      - name: Upload Executable
+        uses: actions/upload-artifact@v4
+        with:
+          path: bongocat.dist
+          name: bongo-cat-onefile-${{ matrix.name }}
           retention-days: 30

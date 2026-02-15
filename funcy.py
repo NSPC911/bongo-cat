@@ -1,14 +1,15 @@
+import json
 import os
 import shutil
 import stat
 import sys
+import urllib.error
+import urllib.request
 from typing import cast
 
-import orjson
-import requests
-import win32api
-import win32con
-import win32gui
+import win32api  # type: ignore[import-not-found]
+import win32con  # type: ignore[import-not-found]
+import win32gui  # type: ignore[import-not-found]
 from PIL import Image
 
 
@@ -17,7 +18,9 @@ def cd():
 
 
 config_dir = os.path.join(  # ty: ignore[no-matching-overload]
-    os.getenv("APPDATA") if os.name == "nt" else os.path.expanduser("~/.config"),
+    cast(str, os.getenv("APPDATA"))
+    if os.name == "nt"
+    else os.path.expanduser("~/.config"),
     "bongo-cat",
 )
 
@@ -46,11 +49,15 @@ def get_config():
     for url in cat_urls:
         filename = os.path.join(cat_dir, os.path.basename(url))
         if not os.path.exists(filename):
-            response = requests.get(url)
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req) as response:
+                content = response.read()
             with open(filename, "wb") as f:
-                f.write(response.content)
+                f.write(content)
     config_dir = os.path.join(  # ty: ignore[no-matching-overload]
-        os.getenv("APPDATA") if os.name == "nt" else os.path.expanduser("~/.config"),
+        cast(str, os.getenv("APPDATA"))
+        if os.name == "nt"
+        else os.path.expanduser("~/.config"),
         "bongo-cat",
     )
     os.makedirs(config_dir, exist_ok=True)
@@ -94,29 +101,31 @@ def get_config():
         },
     }
     if not os.path.exists(config_path):
-        with open(config_path, "wb") as f:
-            f.write(orjson.dumps(default_config, option=orjson.OPT_INDENT_2))
+        with open(config_path, "w") as f:
+            f.write(json.dumps(default_config, indent=2))
             file = default_config
             original_config = default_config
     with open(config_path, "r") as f:
-        file = orjson.loads(f.read())
+        file = json.loads(f.read())
         original_config = file.copy()
         for i in default_config:
             if i not in file or type(file[i]) is not type(default_config[i]):
                 file[i] = default_config[i]
             elif isinstance(type(file[i]), dict):
                 for j in cast(dict, default_config[i]):
-                    if j not in file[i] or type(file[i][j]) is not type(cast(dict, default_config[i])[j]):
+                    if j not in file[i] or type(file[i][j]) is not type(
+                        cast(dict, default_config[i])[j]
+                    ):
                         file[i][j] = cast(dict, default_config[i])[j]
     if original_config != file:
-        with open(config_path, "wb") as f:
-            f.write(orjson.dumps(file, option=orjson.OPT_INDENT_2))
+        with open(config_path, "w") as f:
+            f.write(json.dumps(file, indent=2))
     return file
 
 
 def dump_config(dictionary):
-    with open(os.path.join(config_dir, "config.json"), "wb") as f:
-        f.write(orjson.dumps(dictionary, option=orjson.OPT_INDENT_2))
+    with open(os.path.join(config_dir, "config.json"), "w") as f:
+        f.write(json.dumps(dictionary, indent=2))
 
 
 config = get_config()
@@ -151,13 +160,16 @@ def is_fullscreen_app_active():
 def update_available():
     current = "v1.0.4"
     try:
-        response = requests.get(
-            "https://api.github.com/repos/NSPC911/bongo-cat/releases/latest"
+        req = urllib.request.Request(
+            "https://api.github.com/repos/NSPC911/bongo-cat/releases/latest",
+            headers={"User-Agent": "Mozilla/5.0"},
         )
-    except requests.exceptions.ConnectionError:
+        with urllib.request.urlopen(req) as response:
+            body = response.read()
+    except (urllib.error.URLError, OSError):
         return [False, current]
     try:
-        latest = response.json()["tag_name"]
-    except KeyError:
+        latest = json.loads(body)["tag_name"]
+    except (json.JSONDecodeError, KeyError):
         return [False, current]
     return [latest != current, latest]

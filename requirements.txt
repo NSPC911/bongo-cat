@@ -1,18 +1,8 @@
-﻿altgraph==0.17.4
-certifi==2025.4.26
-charset-normalizer==3.4.2
-idna==3.10
-packaging==25.0
-pefile==2023.2.7
+nuitka @ git+https://github.com/Nuitka/Nuitka@adc3530ae080e7c9601f748118cad9d7f462004c
 pillow==11.2.1
-pyinstaller==6.13.0
-pyinstaller-hooks-contrib==2025.4
 pynput==1.8.1
 pystray==0.19.5
 pywin32==310
-pywin32-ctypes==0.2.3
-requests==2.32.3
-setuptools==80.9.0
+ruff==0.14.9
 six==1.17.0
-ujson==5.10.0
-urllib3==2.4.0
+zstandard==0.25.0

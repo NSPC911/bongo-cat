@@ -41,14 +41,6 @@ jobs:
           restore-keys: |
             nuitka-${{ matrix.name }}
 
-      - name: Cache .venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ matrix.name }}
-          restore-keys: |
-            venv-${{ matrix.name }}
-
       - name: Ensure latest factory version of nuitka
         run: uv sync --upgrade-package nuitka --no-dev --group build
 
@@ -100,14 +92,6 @@ jobs:
           key: nuitka-${{ matrix.name }}
           restore-keys: |
             nuitka-${{ matrix.name }}
-
-      - name: Cache .venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ matrix.name }}
-          restore-keys: |
-            venv-${{ matrix.name }}
 
       - name: Ensure latest factory version of nuitka
         run: uv sync --upgrade-package nuitka --no-dev --group build

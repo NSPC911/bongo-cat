@@ -158,7 +158,7 @@ def is_fullscreen_app_active():
 
 
 def update_available():
-    current = "v1.0.4"
+    current = "v1.0.5"
     try:
         req = urllib.request.Request(
             "https://api.github.com/repos/NSPC911/bongo-cat/releases/latest",

@@ -1,4 +1,5 @@
 import contextlib
+import ctypes
 import os
 import threading
 import tkinter as tk
@@ -23,12 +24,32 @@ from funcy import (
 
 config = get_config()
 
-taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
+# Try to get taskbar position, fallback to work area for tiling WMs like glazewm
 taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
 left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
-x = right - config["width"] - config["offset_from_right"]
-y = top - config["height"] + 68 - config["offset_from_bottom"]
+# If taskbar detection fails (returns zeros), use screen work area
+if right == 0 or bottom == 0:
+    # Get work area (screen minus taskbar) using SystemParametersInfo
+    class RECT(ctypes.Structure):
+        _fields_ = [
+            ("left", ctypes.c_long),
+            ("top", ctypes.c_long),
+            ("right", ctypes.c_long),
+            ("bottom", ctypes.c_long),
+        ]
+
+    SPI_GETWORKAREA = 0x0030
+    work_area = RECT()
+    ctypes.windll.user32.SystemParametersInfoW(
+        SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
+    )
+
+    x = work_area.right - config["width"] - config["offset_from_right"]
+    y = work_area.bottom - config["height"] - config["offset_from_bottom"]
+else:
+    x = right - config["width"] - config["offset_from_right"]
+    y = top - config["height"] + 68 - config["offset_from_bottom"]
 
 root = tk.Tk()
 root.attributes("-topmost", True)
@@ -89,7 +110,10 @@ except Exception:
 
 label = tk.Label(root, image=idle_photo, bg="white")
 label.pack()
-root.geometry(f"+{x}+{y}")
+root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
+root.deiconify()
+root.lift()
+root.attributes("-topmost", True)
 
 
 # more functions :3
@@ -109,8 +133,28 @@ def reload_config(icon, item):
     taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
     left, top, right, bottom = win32gui.GetWindowRect(taskbar)
 
-    x = right - config["width"] - config["offset_from_right"]
-    y = top - config["height"] + 68 - config["offset_from_bottom"]
+    # Use fallback for tiling WMs if taskbar detection fails
+    if right == 0 or bottom == 0:
+
+        class RECT(ctypes.Structure):
+            _fields_ = [
+                ("left", ctypes.c_long),
+                ("top", ctypes.c_long),
+                ("right", ctypes.c_long),
+                ("bottom", ctypes.c_long),
+            ]
+
+        SPI_GETWORKAREA = 0x0030
+        work_area = RECT()
+        ctypes.windll.user32.SystemParametersInfoW(
+            SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
+        )
+
+        x = work_area.right - config["width"] - config["offset_from_right"]
+        y = work_area.bottom - config["height"] - config["offset_from_bottom"]
+    else:
+        x = right - config["width"] - config["offset_from_right"]
+        y = top - config["height"] + 68 - config["offset_from_bottom"]
 
     root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
 
@@ -432,14 +476,36 @@ def monitor_fullscreen_app():
     if current_rect != last_taskbar_rect:
         last_taskbar_rect = current_rect
         left, top, right, bottom = current_rect
-        x = right - config["width"] - config["offset_from_right"]
-        y = top - config["height"] + 68 - config["offset_from_bottom"]
+        # Use fallback for tiling WMs if taskbar detection fails
+        if right == 0 or bottom == 0:
+
+            class RECT(ctypes.Structure):
+                _fields_ = [
+                    ("left", ctypes.c_long),
+                    ("top", ctypes.c_long),
+                    ("right", ctypes.c_long),
+                    ("bottom", ctypes.c_long),
+                ]
+
+            SPI_GETWORKAREA = 0x0030
+            work_area = RECT()
+            ctypes.windll.user32.SystemParametersInfoW(
+                SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
+            )
+
+            x = work_area.right - config["width"] - config["offset_from_right"]
+            y = work_area.bottom - config["height"] - config["offset_from_bottom"]
+        else:
+            x = right - config["width"] - config["offset_from_right"]
+            y = top - config["height"] + 68 - config["offset_from_bottom"]
         root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
 
-    if (not config["fullscreen"]["show"]) and is_fullscreen_app_active():
+    fullscreen_active = is_fullscreen_app_active()
+
+    if (not config["fullscreen"]["show"]) and fullscreen_active:
         root.withdraw()
     else:
-        if is_fullscreen_app_active():
+        if fullscreen_active:
             if config["fullscreen"]["use_offset_from_bottom"]:
                 y_fullscreen = (
                     top
@@ -484,15 +550,6 @@ def monitor_fullscreen_app():
             label.update()
         else:
             root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
-            idle_image = load_image(config["cat_states"]["idle"])
-            leftpaw_image = load_image(config["cat_states"]["leftpaw"])
-            rightpaw_image = load_image(config["cat_states"]["rightpaw"])
-            idle_photo = ImageTk.PhotoImage(idle_image)
-            leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
-            rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
-            label.config(image=idle_photo)
-            setattr(label, "image", idle_photo)
-            label.update()
         root.deiconify()
     root.after(1000, monitor_fullscreen_app)
 

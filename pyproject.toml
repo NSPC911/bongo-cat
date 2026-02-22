@@ -16,7 +16,7 @@ Homepage = "https://github.com/NSPC911/bongo-cat"
 
 [dependency-groups]
 build = [
-  "nuitka",
+  "nuitka>=4.0.1",
   "zstandard>=0.25.0",
 ]
 dev = [
@@ -25,9 +25,6 @@ dev = [
 
 [tool.uv]
 compile-bytecode = true
-
-[tool.uv.sources]
-nuitka = { git = "https://github.com/Nuitka/Nuitka", rev = "factory" }
 
 [tool.ruff.lint]
 select = [

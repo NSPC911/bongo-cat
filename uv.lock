@@ -30,7 +30,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 build = [
-    { name = "nuitka", git = "https://github.com/Nuitka/Nuitka?rev=factory" },
+    { name = "nuitka", specifier = ">=4.0.1" },
     { name = "zstandard", specifier = ">=0.25.0" },
 ]
 dev = [{ name = "ruff", specifier = ">=0.14.6" }]
@@ -43,8 +43,9 @@ sdist = { url = "https://files.pythonhosted.org/packages/63/fe/a17c106a1f4061ce8
 
 [[package]]
 name = "nuitka"
-version = "4.0rc10"
-source = { git = "https://github.com/Nuitka/Nuitka?rev=factory#adc3530ae080e7c9601f748118cad9d7f462004c" }
+version = "4.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/f2/26729cc4e2a893dcabdab4f171e43b2d082756fde1af7cde31f616fc3a31/nuitka-4.0.1.tar.gz", hash = "sha256:8a8dedd549049a145e1545206a082bfbe0bc610457a71d837e560e7cf015635c", size = 4417011, upload-time = "2026-02-14T20:51:34.903Z" }
 
 [[package]]
 name = "pillow"

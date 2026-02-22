@@ -470,9 +470,20 @@ last_taskbar_rect = (left, top, right, bottom)
 
 def monitor_fullscreen_app():
     global last_taskbar_rect, x, y, left, top, right, bottom
+    with contextlib.suppress(Exception):
+        _monitor_fullscreen_app_inner()
+    root.after(1000, monitor_fullscreen_app)
+
+
+def _monitor_fullscreen_app_inner():
+    global last_taskbar_rect, x, y, left, top, right, bottom
     # Check for resolution/taskbar changes
     taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
-    current_rect = win32gui.GetWindowRect(taskbar)
+    try:
+        current_rect = win32gui.GetWindowRect(taskbar)
+    except Exception:
+        print("Failed to get taskbar rect, using fallback")
+        current_rect = (0, 0, 0, 0)
     if current_rect != last_taskbar_rect:
         last_taskbar_rect = current_rect
         left, top, right, bottom = current_rect
@@ -551,7 +562,6 @@ def monitor_fullscreen_app():
         else:
             root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
         root.deiconify()
-    root.after(1000, monitor_fullscreen_app)
 
 
 monitor_fullscreen_app()

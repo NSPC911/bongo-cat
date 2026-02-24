@@ -131,7 +131,10 @@ def reload_config(icon, item):
     global config, x, y, left, top, right, bottom
     config = get_config()
     taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
-    left, top, right, bottom = win32gui.GetWindowRect(taskbar)
+    if taskbar != 0:
+        left, top, right, bottom = win32gui.GetWindowRect(taskbar)
+    else:
+        print("Failed to find taskbar, using fallback")
 
     # Use fallback for tiling WMs if taskbar detection fails
     if right == 0 or bottom == 0:
@@ -156,7 +159,7 @@ def reload_config(icon, item):
         x = right - config["width"] - config["offset_from_right"]
         y = top - config["height"] + 68 - config["offset_from_bottom"]
 
-    root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
+        root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
 
     global \
         idle_image, \

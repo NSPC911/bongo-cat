@@ -2,16 +2,17 @@ import contextlib
 import ctypes
 import os
 import threading
+import time
 import tkinter as tk
 import webbrowser
 from random import randint
 
 import pystray
+import win32.win32gui as win32gui
 from PIL import ImageTk
 from PIL.Image import Image
 from pynput import keyboard, mouse
 from pynput.keyboard import Key
-from win32 import win32gui  # ty: ignore
 
 from funcy import (
     config_dir,
@@ -116,14 +117,16 @@ root.lift()
 root.attributes("-topmost", True)
 
 
-# more functions :3
+# more funcys :3
 def quit_app(icon, item):
     icon.stop()
     root.quit()
 
 
 def launch_config(icon, item):
-    os.startfile(config_dir)
+    os.startfile(
+        config_dir
+    )
 
 
 def reload_config(icon, item):
@@ -159,7 +162,7 @@ def reload_config(icon, item):
         x = right - config["width"] - config["offset_from_right"]
         y = top - config["height"] + 68 - config["offset_from_bottom"]
 
-        root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
+    root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
 
     global \
         idle_image, \
@@ -269,8 +272,6 @@ def show_paw(image):
 
 animation_lock = threading.Lock()
 key_pressed = False
-idle_timer = None
-can_trigger = True
 
 LEFT_KEYS = {
     "char": [
@@ -383,54 +384,47 @@ RIGHT_KEYS = {
 
 
 def thread_trigger_animation(key=None):
-    global idle_timer, can_trigger
-
-    # Don't trigger if we're in the debounce window (paw returning to idle)
-    if not can_trigger:
-        return
-
-    print(key)  # for debug, shouldnt appear in nuitka
-
-    # Determine which paw to show
-    if config["pawcurate"] and key is not None:
-        if (hasattr(key, "char") and key.char in LEFT_KEYS["char"]) or (
-            key in LEFT_KEYS["special"]
-        ):
-            show_paw(leftpaw_photo)
-        elif (
-            (hasattr(key, "char") and key.char in RIGHT_KEYS["char"])
-            or (key in RIGHT_KEYS["special"])
-            or (key == "mouse")
-        ):
-            show_paw(rightpaw_photo)
-        elif key == Key.space:
-            if randint(0, 1) == 0:
-                show_paw(leftpaw_photo)
+    def run():
+        with animation_lock:
+            print(key)
+            if config["pawcurate"] and key is not None:
+                if (hasattr(key, "char") and key.char in LEFT_KEYS["char"]) or (
+                    key in LEFT_KEYS["special"]
+                ):
+                    show_paw(leftpaw_photo)
+                elif (
+                    (hasattr(key, "char") and key.char in RIGHT_KEYS["char"])
+                    or (key in RIGHT_KEYS["special"])
+                    or (key == "mouse")
+                ):
+                    show_paw(rightpaw_photo)
+                elif key == Key.space:
+                    if randint(0, 1) == 0:
+                        show_paw(leftpaw_photo)
+                    else:
+                        show_paw(rightpaw_photo)
+                else:
+                    if randint(0, 1) == 0:
+                        show_paw(leftpaw_photo)
+                    else:
+                        show_paw(rightpaw_photo)
             else:
-                show_paw(rightpaw_photo)
-        else:
-            if randint(0, 1) == 0:
-                show_paw(leftpaw_photo)
-            else:
-                show_paw(rightpaw_photo)
-    else:
-        if randint(0, 1) == 0:
-            show_paw(leftpaw_photo)
-        else:
-            show_paw(rightpaw_photo)
+                if randint(0, 1) == 0:
+                    show_paw(leftpaw_photo)
+                else:
+                    show_paw(rightpaw_photo)
+            time.sleep(config["delay"])
+            show_paw(idle_photo)
 
-    can_trigger = False
+    global key_pressed
+    if not key_pressed:
+        key_pressed = True
+        threading.Thread(target=run, daemon=True).start()
 
-    delay_ms = int(config["delay"] * 1000)
 
-    def return_to_idle():
-        global idle_timer, can_trigger
-        idle_timer = None
-        show_paw(idle_photo)
-        # debounced continue
-        can_trigger = True
-
-    idle_timer = root.after(delay_ms, return_to_idle)
+def key_release():
+    global key_pressed
+    key_pressed = False
 
 
 keyboard_listener, mouse_listener = None, None
@@ -454,13 +448,14 @@ def listeners(startorstop):
         if config["use_keyboard"]:
             keyboard_listener = keyboard.Listener(
                 on_press=lambda key: thread_trigger_animation(key),
+                on_release=lambda key: key_release(),
             )
             keyboard_listener.start()
         if config["use_mouse"]:
             mouse_listener = mouse.Listener(
-                on_click=lambda x, y, button, pressed: (
-                    thread_trigger_animation("mouse") if pressed else None
-                )
+                on_click=lambda x, y, button, pressed: thread_trigger_animation("mouse")
+                if pressed
+                else key_release()
             )
             mouse_listener.start()
 

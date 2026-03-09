@@ -564,4 +564,5 @@ def _monitor_fullscreen_app_inner():
 
 monitor_fullscreen_app()
 
-root.mainloop()
+with contextlib.suppress(KeyboardInterrupt):
+    root.mainloop()

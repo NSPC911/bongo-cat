@@ -46,7 +46,7 @@ jobs:
         run: |
           Remove-Item -Recurse -Force bongocat.dist -ErrorAction SilentlyContinue
           uv sync --group build
-          uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=yes --assume-yes-for-downloads --enable-plugins=no-qt
+          uv run poe build standalone
 
       - name: List dist items
         run: Get-ChildItem -Recurse -Force .\bongocat.dist
@@ -96,7 +96,7 @@ jobs:
         run: |
           Remove-Item -Recurse -Force bongocat.dist -ErrorAction SilentlyContinue
           uv sync --group build
-          uv run nuitka --mode=onefile .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=yes --assume-yes-for-downloads --enable-plugins=no-qt --onefile-cache-mode=cached --onefile-child-grace-time=0
+          uv run poe build onefile
 
       - name: Get Executable Hash
         run: Get-FileHash .\bongocat.exe -Algorithm SHA256

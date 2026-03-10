@@ -40,12 +40,12 @@ cat_urls = [
 ]
 
 
-def remove_readonly(func, path, _):
+def remove_readonly(func, path, _) -> None:
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
 
-def get_config():
+def get_config() -> dict:
     for url in cat_urls:
         filename = os.path.join(cat_dir, os.path.basename(url))
         if not os.path.exists(filename):
@@ -123,7 +123,7 @@ def get_config():
     return file
 
 
-def dump_config(dictionary):
+def dump_config(dictionary) -> None:
     with open(os.path.join(config_dir, "config.json"), "w") as f:
         f.write(json.dumps(dictionary, indent=2))
 
@@ -131,7 +131,7 @@ def dump_config(dictionary):
 config = get_config()
 
 
-def load_image(path):
+def load_image(path) -> Image.Image:
     img = Image.open(path).convert("RGBA")
     img = img.resize((config["width"], config["height"]), Image.Resampling.NEAREST)
     datas = img.getdata()
@@ -143,7 +143,7 @@ def load_image(path):
     return img
 
 
-def is_fullscreen_app_active():
+def is_fullscreen_app_active() -> bool:
     foreground_window = win32gui.GetForegroundWindow()
     if not foreground_window:
         return False
@@ -157,7 +157,7 @@ def is_fullscreen_app_active():
     return (right - left == screen_width) and (bottom - top == screen_height)
 
 
-def update_available():
+def update_available() -> tuple[bool, str]:
     current = "v1.0.5"
     try:
         req = urllib.request.Request(
@@ -167,9 +167,16 @@ def update_available():
         with urllib.request.urlopen(req) as response:
             body = response.read()
     except (urllib.error.URLError, OSError):
-        return [False, current]
+        return (False, current)
     try:
         latest = json.loads(body)["tag_name"]
     except (json.JSONDecodeError, KeyError):
-        return [False, current]
-    return [latest != current, latest]
+        return (False, current)
+    current_parts = [int(x) for x in current.lstrip("v").split(".")]
+    latest_parts = [int(x) for x in latest.lstrip("v").split(".")]
+    if all(
+        latest_part <= current_part
+        for latest_part, current_part in zip(latest_parts, current_parts)
+    ) and latest_parts != current_parts:
+        return (False, current)
+    return (True, current)

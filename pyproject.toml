@@ -20,6 +20,7 @@ build = [
   "zstandard>=0.25.0",
 ]
 dev = [
+  "poethepoet>=0.42.1",
   "ruff>=0.14.6",
 ]
 
@@ -51,3 +52,19 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
 preview = true
+
+[tool.poe.executor]
+type = "uv"
+no-sync = true
+
+[tool.poe.tasks]
+[tool.poe.tasks.build]
+help = "Build bongocat into an executable using Nuitka"
+sequence = [
+  { cmd = 'uv sync --group build' },
+  { cmd = 'nuitka --mode=${mode} ./bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=./idle.ico --lto=${lto} --assume-yes-for-downloads --enable-plugins=no-qt --onefile-cache-mode=cached --onefile-child-grace-time=0' },
+]
+args = [
+  { name = "mode", help = "Build mode: onefile (default) or standalone", default = "onefile", positional = true, choices = ["standalone", "onefile"] },
+  { name = "lto", help = "Enable LTO (link time optimization)", default = "yes", choices = ["yes", "no"], options = ["--lto"] },
+]

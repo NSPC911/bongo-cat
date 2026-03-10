@@ -510,10 +510,18 @@ def _monitor_fullscreen_app_inner():
         root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
 
     fullscreen_active = is_fullscreen_app_active()
+    print(f"Fullscreen active: {fullscreen_active}")
 
     if (not config["fullscreen"]["show"]) and fullscreen_active:
         root.withdraw()
     else:
+        global \
+            idle_image, \
+            leftpaw_image, \
+            rightpaw_image, \
+            idle_photo, \
+            leftpaw_photo, \
+            rightpaw_photo
         if fullscreen_active:
             if config["fullscreen"]["use_offset_from_bottom"]:
                 y_fullscreen = (
@@ -527,13 +535,6 @@ def _monitor_fullscreen_app_inner():
                 )
             else:
                 root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
-            global \
-                idle_image, \
-                leftpaw_image, \
-                rightpaw_image, \
-                idle_photo, \
-                leftpaw_photo, \
-                rightpaw_photo
             if config["fullscreen"]["use_custom_cats"]:
                 idle_image = load_image(config["fullscreen"]["cat_states"]["idle"])
                 leftpaw_image = load_image(
@@ -547,6 +548,7 @@ def _monitor_fullscreen_app_inner():
                 rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
                 label.config(image=idle_photo)
                 setattr(label, "image", idle_photo)
+                print("Using custom cats for fullscreen mode")
             else:
                 idle_image = load_image(config["cat_states"]["idle"])
                 leftpaw_image = load_image(config["cat_states"]["leftpaw"])
@@ -556,8 +558,18 @@ def _monitor_fullscreen_app_inner():
                 rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
                 label.config(image=idle_photo)
                 setattr(label, "image", idle_photo)
+                print("Using normal cats for fullscreen mode")
             label.update()
         else:
+            idle_image = load_image(config["cat_states"]["idle"])
+            leftpaw_image = load_image(config["cat_states"]["leftpaw"])
+            rightpaw_image = load_image(config["cat_states"]["rightpaw"])
+            idle_photo = ImageTk.PhotoImage(idle_image)
+            leftpaw_photo = ImageTk.PhotoImage(leftpaw_image)
+            rightpaw_photo = ImageTk.PhotoImage(rightpaw_image)
+            label.config(image=idle_photo)
+            setattr(label, "image", idle_photo)
+            print("Using normal cats for windowed mode")
             root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
         root.deiconify()
 

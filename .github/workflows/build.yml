@@ -108,3 +108,26 @@ jobs:
           path: bongocat.exe
           name: bongo-cat-onefile-${{ matrix.name }}
           retention-days: 30
+
+  notify-build-success:
+    runs-on: ubuntu-slim
+    name: Notify Build Success
+    needs: [build-standalone, build-onefile]
+    steps:
+      - name: Notify Discord
+        uses: sarisia/actions-status-discord@v1.13.0
+        with:
+          webhook: ${{ secrets.LOG_HOOK }}
+          title: Bongo Cat Build Success
+          color: 0x00FF00
+          description: |
+            Download artifacts:
+            - [standalone-x64](https://nightly.link/NSPC911/bongo-cat/actions/runs/${{ github.run_id }}/build-standalone/artifacts/bongo-cat-standalone-windows-x64.zip)
+            - [standalone-arm](https://nightly.link/NSPC911/bongo-cat/actions/runs/${{ github.run_id }}/build-standalone/artifacts/bongo-cat-standalone-windows-arm.zip)
+            - [onefile-x64](https://nightly.link/NSPC911/bongo-cat/actions/runs/${{ github.run_id }}/build-onefile/artifacts/bongo-cat-onefile-windows-x64.zip)
+            - [onefile-arm](https://nightly.link/NSPC911/bongo-cat/actions/runs/${{ github.run_id }}/build-onefile/artifacts/bongo-cat-onefile-windows-arm.zip)
+          avatar_url: "https://avatars.githubusercontent.com/u/176916861?v=4"
+          username: "NSPBot911"
+          nodetail: true
+          notimestamp: true
+          noprefix: true

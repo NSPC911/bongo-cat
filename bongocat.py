@@ -57,6 +57,38 @@ root.attributes("-topmost", True)
 root.overrideredirect(True)
 root.wm_attributes("-transparentcolor", "white")
 
+
+# Make window click-throughable by setting WS_EX_TRANSPARENT style
+def set_click_through(window, enable=True):
+    try:
+        hwnd = ctypes.windll.user32.GetParent(window.winfo_id())
+        if hwnd == 0:
+            hwnd = window.winfo_id()
+
+        GWL_EXSTYLE = -20
+        WS_EX_LAYERED = 0x00080000
+        WS_EX_TRANSPARENT = 0x00000020
+
+        # Get current extended style
+        style = ctypes.windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+
+        if enable:
+            # Add transparent and layered flags
+            style = style | WS_EX_LAYERED | WS_EX_TRANSPARENT
+        else:
+            # Remove transparent flag but keep layered
+            style = (style | WS_EX_LAYERED) & ~WS_EX_TRANSPARENT
+
+        # Set the new style
+        ctypes.windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+    except Exception as e:
+        print(f"Failed to set click-through: {e}")
+
+
+# Apply click-through based on config
+root.update_idletasks()
+set_click_through(root, config["click_through"])
+
 try:
     idle_image: Image = load_image(config["cat_states"]["idle"])
     leftpaw_image: Image = load_image(config["cat_states"]["leftpaw"])
@@ -124,9 +156,7 @@ def quit_app(icon, item):
 
 
 def launch_config(icon, item):
-    os.startfile(
-        config_dir
-    )
+    os.startfile(config_dir)
 
 
 def reload_config(icon, item):
@@ -180,6 +210,7 @@ def reload_config(icon, item):
 
     label.config(image=idle_photo)
     setattr(label, "image", idle_photo)
+    set_click_through(root, config["click_through"])
     listeners("start")
 
 
@@ -203,6 +234,11 @@ def setup_tray_icon():
             "Pawcurate Keys",
             lambda icon, item: toggle_config("pawcurate", icon, item),
             checked=lambda item: config["pawcurate"],
+        ),
+        pystray.MenuItem(
+            "Click Through",
+            lambda icon, item: toggle_config("click_through", icon, item),
+            checked=lambda item: config["click_through"],
         ),
         pystray.MenuItem(
             "React to",

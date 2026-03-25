@@ -78,6 +78,7 @@ def get_config() -> dict:
         "use_mouse": True,
         "use_keyboard": True,
         "pawcurate": False,
+        "click_through": False,
         "delay": 0.1,
         "width": 174,
         "height": 105,
@@ -174,9 +175,12 @@ def update_available() -> tuple[bool, str]:
         return (False, current)
     current_parts = [int(x) for x in current.lstrip("v").split(".")]
     latest_parts = [int(x) for x in latest.lstrip("v").split(".")]
-    if all(
-        latest_part <= current_part
-        for latest_part, current_part in zip(latest_parts, current_parts)
-    ) and latest_parts != current_parts:
+    if (
+        all(
+            latest_part <= current_part
+            for latest_part, current_part in zip(latest_parts, current_parts)
+        )
+        and latest_parts != current_parts
+    ):
         return (False, current)
     return (True, current)

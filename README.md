@@ -2,11 +2,16 @@
 
 A cute cat decided to sit on your taskbar and tap to your key presses!
 
-https://github.com/user-attachments/assets/8ca31967-54a4-40e9-b05e-d2bf4efb2cba
+https://github.com/user-attachments/assets/6e5dd6db-6d61-4542-8a0b-385ae145eff6
 
 <sub>Made on Windows, pull requests are welcome to add support for Unix systems!</sub>
 
 ## Installation
+
+Powershell:
+```pwsh
+irm "https://raw.githubusercontent.com/NSPC911/bongo-cat/refs/heads/main/install.ps1" | iex
+```
 
 Scoop:
 ```sh
@@ -22,8 +27,8 @@ Normal:
 ```shell
 git clone https://github.com/NSPC911/bongo-cat
 cd bongo-cat
-uv sync
-uv run nuitka --mode=standalone .\bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=.\idle.ico --lto=no --assume-yes-for-downloads
+uv sync --group build
+uv run poe build standalone --lto yes
 # keep in mind that this command takes _a while (like 5+ minutes)_ to complete
 ```
 

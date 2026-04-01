@@ -67,7 +67,7 @@ if (Test-Path $script:dest_path) {
 Expand-Archive $Script:downloadPath -DestinationPath "$HOME/AppData/Local/bongo-cat/"
 # create shortcut
 $Script:WScriptShell = New-Object -ComObject WScript.Shell
-$Script:Shortcut = $WScriptShell.CreateShortcut("$HOME/Desktop/Bongo Cat.lnk")
+$Script:Shortcut = $WScriptShell.CreateShortcut("$HOME/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Bongo Cat.lnk")
 $Script:Shortcut.TargetPath = "$HOME/AppData/Local/bongo-cat/bongocat.exe"
 $Script:Shortcut.Save()
-Write-Host "Installation complete! You can find Bongo Cat in your Start Menu or on your Desktop."
+Write-Host "Installation complete! You can find Bongo Cat in your Start Menu."

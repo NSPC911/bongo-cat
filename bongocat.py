@@ -6,6 +6,7 @@ import time
 import tkinter as tk
 import webbrowser
 from random import randint
+from typing import Literal
 
 import pystray
 import win32.win32gui as win32gui
@@ -18,16 +19,17 @@ from funcy import (
     config_dir,
     dump_config,
     get_config,
+    get_tbs,
     is_fullscreen_app_active,
     load_image,
     update_available,
+    user32,
 )
 
 config = get_config()
 
 # Try to get taskbar position, fallback to work area for tiling WMs like glazewm
-taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
-left, top, right, bottom = win32gui.GetWindowRect(taskbar)
+left, top, right, bottom = get_tbs()
 
 # If taskbar detection fails (returns zeros), use screen work area
 if right == 0 or bottom == 0:
@@ -42,7 +44,7 @@ if right == 0 or bottom == 0:
 
     SPI_GETWORKAREA = 0x0030
     work_area = RECT()
-    ctypes.windll.user32.SystemParametersInfoW(
+    user32.SystemParametersInfoW(
         SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
     )
 
@@ -61,7 +63,7 @@ root.wm_attributes("-transparentcolor", "white")
 # Make window click-throughable by setting WS_EX_TRANSPARENT style
 def set_click_through(window, enable=True):
     try:
-        hwnd = ctypes.windll.user32.GetParent(window.winfo_id())
+        hwnd = user32.GetParent(window.winfo_id())
         if hwnd == 0:
             hwnd = window.winfo_id()
 
@@ -70,7 +72,7 @@ def set_click_through(window, enable=True):
         WS_EX_TRANSPARENT = 0x00000020
 
         # Get current extended style
-        style = ctypes.windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+        style = user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
 
         if enable:
             # Add transparent and layered flags
@@ -80,7 +82,7 @@ def set_click_through(window, enable=True):
             style = (style | WS_EX_LAYERED) & ~WS_EX_TRANSPARENT
 
         # Set the new style
-        ctypes.windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+        user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
     except Exception as e:
         print(f"Failed to set click-through: {e}")
 
@@ -163,11 +165,7 @@ def reload_config(icon, item):
     listeners("stop")
     global config, x, y, left, top, right, bottom
     config = get_config()
-    taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
-    if taskbar != 0:
-        left, top, right, bottom = win32gui.GetWindowRect(taskbar)
-    else:
-        print("Failed to find taskbar, using fallback")
+    left, top, right, bottom = get_tbs()
 
     # Use fallback for tiling WMs if taskbar detection fails
     if right == 0 or bottom == 0:
@@ -182,7 +180,7 @@ def reload_config(icon, item):
 
         SPI_GETWORKAREA = 0x0030
         work_area = RECT()
-        ctypes.windll.user32.SystemParametersInfoW(
+        user32.SystemParametersInfoW(
             SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
         )
 
@@ -423,33 +421,27 @@ def thread_trigger_animation(key=None):
     def run():
         with animation_lock:
             print(key)
+            shown = False
             if config["pawcurate"] and key is not None:
                 if (hasattr(key, "char") and key.char in LEFT_KEYS["char"]) or (
                     key in LEFT_KEYS["special"]
                 ):
                     show_paw(leftpaw_photo)
+                    shown = True
                 elif (
                     (hasattr(key, "char") and key.char in RIGHT_KEYS["char"])
                     or (key in RIGHT_KEYS["special"])
                     or (key == "mouse")
                 ):
                     show_paw(rightpaw_photo)
-                elif key == Key.space:
-                    if randint(0, 1) == 0:
-                        show_paw(leftpaw_photo)
-                    else:
-                        show_paw(rightpaw_photo)
-                else:
-                    if randint(0, 1) == 0:
-                        show_paw(leftpaw_photo)
-                    else:
-                        show_paw(rightpaw_photo)
-            else:
+                    shown = True
+            if not shown:
                 if randint(0, 1) == 0:
                     show_paw(leftpaw_photo)
                 else:
                     show_paw(rightpaw_photo)
-            time.sleep(config["delay"])
+            for _ in range(10):
+                time.sleep(config["delay"] / 10)
             show_paw(idle_photo)
 
     global key_pressed
@@ -466,7 +458,7 @@ def key_release():
 keyboard_listener, mouse_listener = None, None
 
 
-def listeners(startorstop):
+def listeners(startorstop: Literal["start", "stop"]):
     global keyboard_listener, mouse_listener
     if startorstop == "stop":
         # try except for the off chance that you didnt define it
@@ -534,7 +526,7 @@ def _monitor_fullscreen_app_inner():
 
             SPI_GETWORKAREA = 0x0030
             work_area = RECT()
-            ctypes.windll.user32.SystemParametersInfoW(
+            user32.SystemParametersInfoW(
                 SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
             )
 

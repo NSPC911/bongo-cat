@@ -1,3 +1,4 @@
+import ctypes
 import json
 import os
 import shutil
@@ -24,6 +25,8 @@ config_dir = os.path.join(  # ty: ignore[no-matching-overload]
     "bongo-cat",
 )
 
+user32 = ctypes.windll.user32
+
 # get default cats
 cat_dir = os.path.join(
     config_dir,
@@ -40,6 +43,18 @@ cat_urls = [
 ]
 
 
+def get_tbs() -> tuple[int, int, int, int]:
+    taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
+    if taskbar != 0:
+        left, top, right, bottom = win32gui.GetWindowRect(taskbar)
+    else:
+        left = 0
+        right = int(user32.GetSystemMetrics(0))
+        bottom = int(user32.GetSystemMetrics(1))
+        top = int((right / bottom) * 40)  # assume they are reasonable
+    return left, top, right, bottom
+
+
 def remove_readonly(func, path, _) -> None:
     os.chmod(path, stat.S_IWRITE)
     func(path)
@@ -54,7 +69,7 @@ def get_config() -> dict:
                 content = response.read()
             with open(filename, "wb") as f:
                 f.write(content)
-    config_dir = os.path.join(  # ty: ignore[no-matching-overload]
+    config_dir = os.path.join(
         cast(str, os.getenv("APPDATA"))
         if os.name == "nt"
         else os.path.expanduser("~/.config"),

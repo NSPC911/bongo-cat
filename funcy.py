@@ -188,14 +188,10 @@ def update_available() -> tuple[bool, str]:
         latest = json.loads(body)["tag_name"]
     except (json.JSONDecodeError, KeyError):
         return (False, current)
-    current_parts = [int(x) for x in current.lstrip("v").split(".")]
-    latest_parts = [int(x) for x in latest.lstrip("v").split(".")]
+    current_parts = tuple([int(x) for x in current.lstrip("v").split(".")])
+    latest_parts = tuple([int(x) for x in latest.lstrip("v").split(".")])
     if (
-        all(
-            latest_part <= current_part
-            for latest_part, current_part in zip(latest_parts, current_parts)
-        )
-        and latest_parts != current_parts
+        current_parts >= latest_parts
     ):
         return (False, current)
     return (True, current)

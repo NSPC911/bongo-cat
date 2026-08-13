@@ -609,6 +609,7 @@ def _monitor_fullscreen_app_inner():
             root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
         if root.state() == "withdrawn":
             root.deiconify()
+    root.attributes("-topmost", True)
 
 
 monitor_fullscreen_app()

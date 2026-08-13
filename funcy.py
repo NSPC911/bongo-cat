@@ -94,6 +94,7 @@ def get_config() -> dict:
         "use_keyboard": True,
         "pawcurate": False,
         "click_through": False,
+        "force_on_taskbar": True,
         "delay": 0.1,
         "width": 174,
         "height": 105,
@@ -190,8 +191,6 @@ def update_available() -> tuple[bool, str]:
         return (False, current)
     current_parts = tuple([int(x) for x in current.lstrip("v").split(".")])
     latest_parts = tuple([int(x) for x in latest.lstrip("v").split(".")])
-    if (
-        current_parts >= latest_parts
-    ):
+    if current_parts >= latest_parts:
         return (False, current)
     return (True, current)

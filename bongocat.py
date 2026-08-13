@@ -31,8 +31,12 @@ config = get_config()
 # Try to get taskbar position, fallback to work area for tiling WMs like glazewm
 left, top, right, bottom = get_tbs()
 
+# If taskbar forcing is disabled, position once without consulting the taskbar.
+if not config["force_on_taskbar"]:
+    x = user32.GetSystemMetrics(0) - config["width"] - config["offset_from_right"]
+    y = user32.GetSystemMetrics(1) - config["height"] - config["offset_from_bottom"]
 # If taskbar detection fails (returns zeros), use screen work area
-if right == 0 or bottom == 0:
+elif right == 0 or bottom == 0:
     # Get work area (screen minus taskbar) using SystemParametersInfo
     class RECT(ctypes.Structure):
         _fields_ = [
@@ -44,9 +48,7 @@ if right == 0 or bottom == 0:
 
     SPI_GETWORKAREA = 0x0030
     work_area = RECT()
-    user32.SystemParametersInfoW(
-        SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
-    )
+    user32.SystemParametersInfoW(SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0)
 
     x = work_area.right - config["width"] - config["offset_from_right"]
     y = work_area.bottom - config["height"] - config["offset_from_bottom"]
@@ -167,8 +169,11 @@ def reload_config(icon, item):
     config = get_config()
     left, top, right, bottom = get_tbs()
 
+    if not config["force_on_taskbar"]:
+        x = user32.GetSystemMetrics(0) - config["width"] - config["offset_from_right"]
+        y = user32.GetSystemMetrics(1) - config["height"] - config["offset_from_bottom"]
     # Use fallback for tiling WMs if taskbar detection fails
-    if right == 0 or bottom == 0:
+    elif right == 0 or bottom == 0:
 
         class RECT(ctypes.Structure):
             _fields_ = [
@@ -180,9 +185,7 @@ def reload_config(icon, item):
 
         SPI_GETWORKAREA = 0x0030
         work_area = RECT()
-        user32.SystemParametersInfoW(
-            SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
-        )
+        user32.SystemParametersInfoW(SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0)
 
         x = work_area.right - config["width"] - config["offset_from_right"]
         y = work_area.bottom - config["height"] - config["offset_from_bottom"]
@@ -237,6 +240,11 @@ def setup_tray_icon():
             "Click Through",
             lambda icon, item: toggle_config("click_through", icon, item),
             checked=lambda item: config["click_through"],
+        ),
+        pystray.MenuItem(
+            "Force on Taskbar",
+            lambda icon, item: toggle_config("force_on_taskbar", icon, item),
+            checked=lambda item: config["force_on_taskbar"],
         ),
         pystray.MenuItem(
             "React to",
@@ -504,12 +512,14 @@ def monitor_fullscreen_app():
 def _monitor_fullscreen_app_inner():
     global last_taskbar_rect, x, y, left, top, right, bottom
     # Check for resolution/taskbar changes
-    taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
-    try:
-        current_rect = win32gui.GetWindowRect(taskbar)
-    except Exception:
-        print("Failed to get taskbar rect, using fallback")
-        current_rect = (0, 0, 0, 0)
+    current_rect = last_taskbar_rect
+    if config["force_on_taskbar"]:
+        taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
+        try:
+            current_rect = win32gui.GetWindowRect(taskbar)
+        except Exception:
+            print("Failed to get taskbar rect, using fallback")
+            current_rect = (0, 0, 0, 0)
     if current_rect != last_taskbar_rect:
         last_taskbar_rect = current_rect
         left, top, right, bottom = current_rect
@@ -526,9 +536,7 @@ def _monitor_fullscreen_app_inner():
 
             SPI_GETWORKAREA = 0x0030
             work_area = RECT()
-            user32.SystemParametersInfoW(
-                SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0
-            )
+            user32.SystemParametersInfoW(SPI_GETWORKAREA, 0, ctypes.byref(work_area), 0)
 
             x = work_area.right - config["width"] - config["offset_from_right"]
             y = work_area.bottom - config["height"] - config["offset_from_bottom"]

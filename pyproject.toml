@@ -57,14 +57,14 @@ preview = true
 type = "uv"
 no-sync = true
 
-[tool.poe.tasks]
 [tool.poe.tasks.build]
 help = "Build bongocat into an executable using Nuitka"
 sequence = [
   { cmd = 'uv sync --group build' },
-  { cmd = 'nuitka --mode=${mode} ./bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=./idle.ico --lto=${lto} --assume-yes-for-downloads --enable-plugins=no-qt --onefile-cache-mode=cached --onefile-child-grace-time=0' },
+  { cmd = 'nuitka --mode=${mode} ./bongocat.py --enable-plugin=tk-inter --windows-console-mode=disable --windows-icon-from-ico=./idle.ico --lto=${lto} --assume-yes-for-downloads --enable-plugins=no-qt --onefile-cache-mode=cached --onefile-child-grace-time=0 $POE_EXTRA_ARGS' },
 ]
 args = [
-  { name = "mode", help = "Build mode: onefile (default) or standalone", default = "standalone", positional = true, choices = ["standalone", "onefile"] },
-  { name = "lto", help = "Enable LTO (link time optimization)", default = "yes", choices = ["yes", "no"], options = ["--lto"] },
+  { name = "mode", help = "Build mode: onefile (default) or standalone", default = "onefile", positional = true, choices = ["standalone", "onefile"] },
+  { name = "lto", help = "Enable LTO (doesn't work with zig)", default = "yes", choices = ["yes", "no"], options = ["--lto"] },
+  { name = "report", help = "Where to output the Nuitka report", default = "report.xml", options = ["--report"] },
 ]

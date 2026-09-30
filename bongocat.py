@@ -607,9 +607,7 @@ def _monitor_fullscreen_app_inner():
             setattr(label, "image", idle_photo)
             print("Using normal cats for windowed mode")
             root.geometry(f"{config['width']}x{config['height']}+{x}+{y}")
-        if root.state() == "withdrawn":
-            root.deiconify()
-    root.attributes("-topmost", True)
+        root.deiconify()
 
 
 monitor_fullscreen_app()
